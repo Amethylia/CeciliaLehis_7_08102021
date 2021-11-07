@@ -2,16 +2,8 @@ const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const db = require('../database/config');
-
-/* MaskData */
-const MaskData = require('maskdata');
-const emailMask2Options = {
-    maskWith: "*", 
-    unmaskedStartCharactersBeforeAt: 2,
-    unmaskedEndCharactersAfterAt: 2,
-    maskAtTheRate: false
-};
+const config = require('../database/config.js');
+const connection = mysql.createConnection(config.databaseOptions);
 
 /* EmailValidator */
 const emailValidator = require('email-validator');
@@ -27,17 +19,15 @@ schema
 .has().not().spaces()                           
 .is().not().oneOf(['Passw0rd', 'Password123']);
 
-/* Inscription */
-exports.signup = (req, res, next) => {
-    const email = MaskData.maskEmail2(req.body.email, emailMask2Options);
-    bcrypt
-    .hash(req.body.password, 10)
-    .then(hash => {
-        const signupSql = "INSERT INTO user (last_name, first_name, email, password) VALUES (?, ?, ?, ?)";
-        const insertValues = [req.body.lastName, req.body.firstName, email, hash];
-        signup = mysql.format(signupSql, insertValues);
 
-        db.query(signup, function (err, res) {
+/* Inscription */
+exports.signup = (req, resExp, next) => {
+    bcrypt.hash(req.body.password, 10)
+    .then(hash => {
+        const signupSql = "INSERT INTO user (last_name, first_name, email, password) VALUES (?, ?, ?, ?);";
+        const insertValues = [req.body.lastName, req.body.firstName, req.body.email, hash];
+        signup = mysql.format(signupSql, insertValues);
+        connection.query(signup, function (err, resSignupFunction) {
             if(!schema.validate(req.body.password) && !emailValidator.validate(req.body.email)) {
                 let message = "";
                 if(!schema.validate(req.body.password)) {
@@ -46,21 +36,20 @@ exports.signup = (req, res, next) => {
                 else if(!emailValidator.validate(req.body.email)) {
                     message = 'Veuillez saisir une adresse mail valide.'
                 } 
-                res.status(400).json({ message });
+                resExp.status(400).json({ message });
             } else {
-                const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?";
-                const insertValues = [email];
+                const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?;";
+                const insertValues = [req.body.email];
                 login = mysql.format(loginSql, insertValues);
-
-                db.query(login, function (err, res) {
-                    if (!res) {
-                        return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+                connection.query(login, function (err, resLoginFunction) {
+                    if (!resLoginFunction) {
+                        return resExp.status(400).json({ error: 'Utilisateur non trouvé !' });
                     } else {
-                        return res.status(201).json({
+                        return resExp.status(200).json({
                             message: 'Utilisateur créé et connecté !',
-                            userId: res.id,
+                            userId: resLoginFunction[0]["id"],
                             token: jwt.sign(
-                                { userId: res.id },
+                                { userId: resLoginFunction[0]["id"] },
                                 'RANDOM_TOKEN_SECRET',
                                 { expiresIn: '24h' }
                             )
@@ -70,88 +59,94 @@ exports.signup = (req, res, next) => {
             }
         })
     })
-    .catch(error => res.status(500).json({ error }));
+    .catch(error => resExp.status(500).json({ error }));
 };
 
 /* Connexion */
-exports.login = (req, res, next) => {
-    const email = MaskData.maskEmail2(req.body.email, emailMask2Options);
-
-    const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?";
-    const insertValues = [email];
-    login = mysql.format(loginSql, insertValues);
-
-    db.query(login, function (err, res) {
-        if (!res) {
-            return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+exports.login = (req, resExp, next) => {
+    const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?;";
+    const insertValue = [req.body.email];
+    login = mysql.format(loginSql, insertValue);
+    connection.query(login, function (err, resLoginFunction) {
+        if (!resLoginFunction) {
+            return resExp.status(400).json({ error: 'Utilisateur non trouvé !' });
         } else {
-            bcrypt
-            .compare(req.body.password, res.password)
+            bcrypt.compare(req.body.password, resLoginFunction[0]["password"])
             .then(valid => {
                 if (!valid) {
-                    return res.status(401).json({ error: 'Mot de passe incorrect !' });
+                    return resExp.status(400).json({ error: 'Mot de passe incorrect !' });
                 }
-                res.status(200).json({
-                    userId: res.id,
+                resExp.status(200).json({
+                    message: 'Utilisateur connecté !',
+                    userId: resLoginFunction[0]["id"],
                     token: jwt.sign(
-                        { userId: res.id },
+                        { userId: resLoginFunction[0]["id"] },
                         'RANDOM_TOKEN_SECRET',
                         { expiresIn: '24h' }
                     )
                 });
             })
-            .catch(error => res.status(500).json({ error }));
+            .catch(error => resExp.status(500).json({ error }));
         }
     })
 };
 
 /* Récupérer un compte utilisateur */
-exports.getUserAccount = (req, res, next) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+exports.getUserAccount = (req, resExp, next) => {
+    const getUASql = "SELECT last_name, first_name, email FROM user WHERE id = ?;";
+    const insertValue = [req.params.id];
+    getUserAccount = mysql.format(getUASql, insertValue);
+    connection.query(getUserAccount, function (err, resGetUAFunction) {
+        if (!resGetUAFunction) {
+            return resExp.status(400).json({ error: 'Utilisateur non trouvé !' });
+        } else {
+            return resExp.status(200).json({
+                message: 'Utilisateur trouvé !',
+                nom: resGetUAFunction[0]["last_name"],
+                prenom: resGetUAFunction[0]["first_name"],
+                email: resGetUAFunction[0]["email"]
+            });
+        }
+    })
+};
 
-    if (req.body.userId && req.body.userId !== userId) {
-        const getUASql = "SELECT last_name, first_name, email FROM user WHERE id = ?";
-        const insertValues = [userId];
-        getUserAccount = mysql.format(getUASql, insertValues);
-
-        db.query(getUserAccount, function (err, res) {
-            if (!res) {
-                return res.status(401).json({ error: 'Utilisateur non trouvé !' });
-            } else {
-                return res.status(201).json({
-                    message: 'Utilisateur trouvé',
-                    nom: res.nom,
-                    prenom: res.prenom,
-                    email: res.email
-                });
-            }
-        }) 
-    } else {
-        return res.status(401).json({ error: "La récupération des données de l'utilisateur est refusée !" });
-    }
+/* Modifier un compte utilisateur */
+exports.modifyUserAccount = (req, resExp, next) => {
+    const modifyUASql = "UPDATE user SET last_name = IFNULL(?, last_name), first_name = IFNULL(?, first_name) WHERE id = ?;";
+    const insertValues = [req.body.lastName, req.body.firstName, req.params.id];
+    modifyUserAccount = mysql.format(modifyUASql, insertValues);
+    connection.query(modifyUserAccount, function (err, resModifyFunction) {
+        if (!resModifyFunction) {
+            return resExp.status(400).json({ error: 'La modification du compte a échouée !' });
+        } else {
+            const sendModifyUASql = "SELECT id, last_name, first_name, email, password FROM User WHERE id = ?;";
+            const insertValue = [req.params.id];
+            SendModifyUserAccount = mysql.format(sendModifyUASql, insertValue);
+            connection.query(SendModifyUserAccount, function (err, resSendModifyUAFunction) {
+                if (!resSendModifyUAFunction) {
+                    return resExp.status(400).json({ error: 'Envoie des données refusées !' });
+                } else {
+                    return resExp.status(200).json({ 
+                        message: 'Envoie des données acceptées !',
+                        nom: resSendModifyUAFunction[0]["last_name"],
+                        prenom: resSendModifyUAFunction[0]["first_name"]
+                    });
+                }
+            })
+        }
+    })
 };
 
 /* Supprimer un compte utilisateur */
-exports.deleteUserAccount = (req, res, next) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-
-    if (req.body.userId && req.body.userId !== userId) {
-        const deleteUASql = "DELETE FROM user FROM user WHERE id = ?";
-        const insertValues = [userId];
-        deleteUserAccount = mysql.format(deleteUASql, insertValues);
-
-        db.query(deleteUserAccount, function (err, res) {
-            if (!res) {
-                return res.status(401).json({ error: 'La suppression du compte a échouée !' });
-            } else {
-                return res.status(201).json({ message: 'La suppression du compte a réussi !' });
-            }
-        }) 
-    } else {
-        return res.status(401).json({ error: "La suppression des données de l'utilisateur est refusée !" });
-    }
+exports.deleteUserAccount = (req, resExp, next) => {
+    const deleteUserAccountSql = "DELETE FROM user WHERE id = ?;";
+    const insertValue = [req.params.id];
+    deleteUserAccount = mysql.format(deleteUserAccountSql, insertValue);
+    connection.query(deleteUserAccount, function (err, resDeleteFunction) {
+        if (!resDeleteFunction) {
+            return resExp.status(400).json({ error: 'La suppression du compte a échouée !' });
+        } else {
+            return resExp.status(200).json({ message: 'La suppression du compte a réussi !' });
+        }
+    })
 };
