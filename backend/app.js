@@ -1,6 +1,5 @@
 const express = require('express');
 require('dotenv').config();
-const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
@@ -17,7 +16,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 

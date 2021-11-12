@@ -22,6 +22,11 @@ schema
 
 /* Inscription */
 exports.signup = (req, resExp, next) => {
+    req.body.lastName = "lehis";
+    req.body.firstName = "cécilia";
+    req.body.email = "cecilia.lehis@gmail.com";
+    req.body.password = "passTEks20";
+    
     bcrypt.hash(req.body.password, 10)
     .then(hash => {
         const signupSql = "INSERT INTO user (last_name, first_name, email, password) VALUES (?, ?, ?, ?);";
@@ -64,6 +69,9 @@ exports.signup = (req, resExp, next) => {
 
 /* Connexion */
 exports.login = (req, resExp, next) => {
+    req.body.email = "cecilia.lehis@gmail.com";
+    req.body.password = "passTEks20";
+
     const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?;";
     const insertValue = [req.body.email];
     login = mysql.format(loginSql, insertValue);
@@ -93,6 +101,8 @@ exports.login = (req, resExp, next) => {
 
 /* Récupérer un compte utilisateur */
 exports.getUserAccount = (req, resExp, next) => {
+    req.params.id = 64;
+
     const getUASql = "SELECT last_name, first_name, email FROM user WHERE id = ?;";
     const insertValue = [req.params.id];
     getUserAccount = mysql.format(getUASql, insertValue);
@@ -112,6 +122,10 @@ exports.getUserAccount = (req, resExp, next) => {
 
 /* Modifier un compte utilisateur */
 exports.modifyUserAccount = (req, resExp, next) => {
+    req.body.lastName = "lhs";
+    req.body.firstName = "adeline";
+    req.params.id = 64;
+
     const modifyUASql = "UPDATE user SET last_name = IFNULL(?, last_name), first_name = IFNULL(?, first_name) WHERE id = ?;";
     const insertValues = [req.body.lastName, req.body.firstName, req.params.id];
     modifyUserAccount = mysql.format(modifyUASql, insertValues);
@@ -139,6 +153,8 @@ exports.modifyUserAccount = (req, resExp, next) => {
 
 /* Supprimer un compte utilisateur */
 exports.deleteUserAccount = (req, resExp, next) => {
+    req.params.id = 49;
+
     const deleteUserAccountSql = "DELETE FROM user WHERE id = ?;";
     const insertValue = [req.params.id];
     deleteUserAccount = mysql.format(deleteUserAccountSql, insertValue);

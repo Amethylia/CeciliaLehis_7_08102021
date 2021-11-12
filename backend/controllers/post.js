@@ -18,6 +18,8 @@ exports.getAllPosts = (req, resExp, next) => {
 
 /* Récupération d'un post */
 exports.getPost = (req, resExp, next) => {
+    req.params.id = 64;
+
     const getPostSql = "SELECT title, picture_url, description FROM post WHERE id = ?";
     const InsertValue = [req.params.id];
     getPost = mysql.format(getPostSql, InsertValue);
@@ -37,8 +39,13 @@ exports.getPost = (req, resExp, next) => {
 
 /* Création d'un post */
 exports.createPost = (req, resExp, next) => {
-    const userId = res.UserId;
-    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    // const userId = res.UserId; //A tester lors de la mise en place du front
+    userId = 64;
+    req.body.title = "Paysage";
+    req.body.description = "joli paysage";
+    imageUrl = "http://localhost:3000/images/paysage.jpg";
+    // const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+
     const createPostSql = "INSERT INTO post (user_id, title, picture_url, description) VALUES (?, ?, ?, ?);";
     const insertValues = [userId, req.body.title, imageUrl, req.body.description];
     createPost = mysql.format(createPostSql, insertValues);
@@ -53,7 +60,13 @@ exports.createPost = (req, resExp, next) => {
 
 /* Modification d'un post */
 exports.modifyPost = (req, resExp, next) => {
-    const imageUrl = "`${req.protocol}://${req.get('host')}/images/${req.file.filename}`";
+    // const imageUrl = "`${req.protocol}://${req.get('host')}/images/${req.file.filename}`";
+    const imageUrl = "http://localhost:3000/images/cupcakes.jpg";
+
+    req.params.id = 65;
+    req.body.title = "cupcakes";
+    req.body.description = "savourez moi";
+
     const modifyInfosPost = "UPDATE post SET title = IFNULL(?, title), picture_url = IFNULL(?, picture_url), description = IFNULL(?, description) WHERE id = ?;";
     const insertValues = [req.body.title, imageUrl, req.body.description, req.params.id];
     modifyPost = mysql.format(modifyInfosPost, insertValues);
@@ -79,7 +92,11 @@ exports.modifyPost = (req, resExp, next) => {
 
 /* Suppression d'un post */
 exports.deletePost = (req, resExp, next) => {
-    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    req.params.id = 65;
+
+    // const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    const imageUrl = "http://localhost:3000/images/cupcakes.jpg";
+    
     const deletePostSql = "DELETE FROM post WHERE id = ?;";
     const insertValue = [req.params.id];
     deletePost = mysql.format(deletePostSql, insertValue);

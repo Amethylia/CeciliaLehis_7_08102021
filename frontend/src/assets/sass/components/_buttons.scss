@@ -1,0 +1,31 @@
+.button {
+    padding: 11px 35px;
+    font-family: $font_2;
+    font-weight: 600;
+    font-size: 14px;
+    background: $red;
+    border: none;
+    border-radius: 30px;
+    color: $white;
+    cursor: pointer;
+    transition: all 0.4s;
+    &:hover {
+        border: 3px solid $red;
+        background: transparent;
+        color: $red;
+    }
+    @include r-768 {
+        font-size: 16px;
+    }
+    @include r-1200 {
+        margin-right: 15px;
+        background: transparent;
+        border: 3px solid $red;
+        color: $red;
+        &:hover {
+            border: none;
+            background: $red;
+            color: $white;
+        }
+    }
+}
