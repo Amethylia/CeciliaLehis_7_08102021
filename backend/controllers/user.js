@@ -22,29 +22,33 @@ schema
 
 /* Inscription */
 exports.signup = (req, resExp, next) => {
-    req.body.lastName = "lehis";
-    req.body.firstName = "cécilia";
-    req.body.email = "cecilia.lehis@gmail.com";
-    req.body.password = "passTEks20";
+    lastName = "lehis";
+    firstName = "cécilia";
+    email = "cecilia.lehis@gmail.com";
+    password = "passTEks20";
+    // lastName = req.body.lastName;
+    // firstName = req.body.firstName;
+    // email = req.body.email;
+    // password = req.body.password;
     
     bcrypt.hash(req.body.password, 10)
     .then(hash => {
         const signupSql = "INSERT INTO user (last_name, first_name, email, password) VALUES (?, ?, ?, ?);";
-        const insertValues = [req.body.lastName, req.body.firstName, req.body.email, hash];
+        const insertValues = [lastName, firstName, email, hash];
         signup = mysql.format(signupSql, insertValues);
         connection.query(signup, function (err, resSignupFunction) {
-            if(!schema.validate(req.body.password) && !emailValidator.validate(req.body.email)) {
+            if(!schema.validate(password) && !emailValidator.validate(email)) {
                 let message = "";
-                if(!schema.validate(req.body.password)) {
+                if(!schema.validate(password)) {
                     message = 'Le mot de passe doit être composé de 8 caractères dont au moins: 1 majuscule et 1 minuscule. Les espaces ne sont pas autorisés.'   
                 }
-                else if(!emailValidator.validate(req.body.email)) {
+                else if(!emailValidator.validate(email)) {
                     message = 'Veuillez saisir une adresse mail valide.'
                 } 
                 resExp.status(400).json({ message });
             } else {
                 const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?;";
-                const insertValues = [req.body.email];
+                const insertValues = [email];
                 login = mysql.format(loginSql, insertValues);
                 connection.query(login, function (err, resLoginFunction) {
                     if (!resLoginFunction) {
