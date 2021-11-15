@@ -1,4 +1,5 @@
 const mysql = require('mysql2');
+const jwt = require('jsonwebtoken');
 const fs = require('fs');
 
 const config = require('../database/config.js');
@@ -11,17 +12,19 @@ exports.getAllPosts = (req, resExp, next) => {
         if(!resGetAllPostsFunction) {
             return resExp.status(400).json({ error: 'Aucun post publié !' });
         } else {
-            return resExp.status(200).json({ mesage: "Voici le(s) post(s) publié(s) !" });
+            return resExp.status(200).json({ message: "Voici le(s) post(s) publié(s) !" });
         }
     });
 }
 
 /* Récupération d'un post */
 exports.getPost = (req, resExp, next) => {
-    req.params.id = 64;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
 
     const getPostSql = "SELECT title, picture_url, description FROM post WHERE id = ?";
-    const InsertValue = [req.params.id];
+    const InsertValue = [userId];
     getPost = mysql.format(getPostSql, InsertValue);
     connection.query(getPost, function (err, resGetPostFunction) {
         if(!resGetPostFunction) {
@@ -29,9 +32,9 @@ exports.getPost = (req, resExp, next) => {
         } else {
             return resExp.status(200).json({
                 message: 'Post récupéré !',
-                titre: resGetPostFunction[0]["title"],
-                image: resGetPostFunction[0]["picture_url"],
-                description: resGetPostFunction[0]["description"]
+                // titre: resGetPostFunction[0]["title"],
+                // image: resGetPostFunction[0]["picture_url"],
+                // description: resGetPostFunction[0]["description"]
         });
         }
     });
@@ -39,15 +42,16 @@ exports.getPost = (req, resExp, next) => {
 
 /* Création d'un post */
 exports.createPost = (req, resExp, next) => {
-    // const userId = res.UserId; //A tester lors de la mise en place du front
-    userId = 64;
-    req.body.title = "Paysage";
-    req.body.description = "joli paysage";
-    imageUrl = "http://localhost:3000/images/paysage.jpg";
-    // const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
+
+    const title = req.body.title;
+    const description = req.body.description;
+    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
 
     const createPostSql = "INSERT INTO post (user_id, title, picture_url, description) VALUES (?, ?, ?, ?);";
-    const insertValues = [userId, req.body.title, imageUrl, req.body.description];
+    const insertValues = [userId, title, imageUrl, description];
     createPost = mysql.format(createPostSql, insertValues);
     connection.query(createPost, function (err, resCreatePostFunction){
         if (!resCreatePostFunction){
@@ -60,22 +64,23 @@ exports.createPost = (req, resExp, next) => {
 
 /* Modification d'un post */
 exports.modifyPost = (req, resExp, next) => {
-    // const imageUrl = "`${req.protocol}://${req.get('host')}/images/${req.file.filename}`";
-    const imageUrl = "http://localhost:3000/images/cupcakes.jpg";
+    const title = req.body.title;
+    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    const description = req.body.description;
 
-    req.params.id = 65;
-    req.body.title = "cupcakes";
-    req.body.description = "savourez moi";
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
 
     const modifyInfosPost = "UPDATE post SET title = IFNULL(?, title), picture_url = IFNULL(?, picture_url), description = IFNULL(?, description) WHERE id = ?;";
-    const insertValues = [req.body.title, imageUrl, req.body.description, req.params.id];
+    const insertValues = [title, imageUrl, description, userId];
     modifyPost = mysql.format(modifyInfosPost, insertValues);
     connection.query(modifyPost, function (err, resModifyPostFunction) {
         if(!resModifyPostFunction) {
             return resExp.status(400).json({ error: 'Modification du post refusée !' });
         } else {
             const selectImagePost = "SELECT picture_url FROM post WHERE id = ?;";
-            const insertValue = [req.params.id];
+            const insertValue = [userId];
             imagePost = mysql.format(selectImagePost, insertValue);
             connection.query(imagePost, function (err, resImagePostFunction) {
                 if(imageUrl) {
@@ -92,13 +97,13 @@ exports.modifyPost = (req, resExp, next) => {
 
 /* Suppression d'un post */
 exports.deletePost = (req, resExp, next) => {
-    req.params.id = 65;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    const userId = decodedToken.userId;
 
-    // const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
-    const imageUrl = "http://localhost:3000/images/cupcakes.jpg";
-    
+    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
     const deletePostSql = "DELETE FROM post WHERE id = ?;";
-    const insertValue = [req.params.id];
+    const insertValue = [userId];
     deletePost = mysql.format(deletePostSql, insertValue);
     connection.query(deletePost, function (err, resDeletePostFunction) {
         if(!resDeletePostFunction) {

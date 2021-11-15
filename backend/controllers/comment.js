@@ -5,8 +5,6 @@ const connection = mysql.createConnection(config.databaseOptions);
 
 /* Récupération de tous les commentaires */
 exports.getAllComments = (req, resExp, next) => {
-    req.params.post_id = "64";
-
     const getAllcommentsSql = "SELECT post_id, id FROM comment WHERE post_id = ?;";
     const InsertValue = [req.params.post_id];
     getAllcomments = mysql.format(getAllcommentsSql, InsertValue);
@@ -21,9 +19,6 @@ exports.getAllComments = (req, resExp, next) => {
 
 /* Récupération d'un commentaire */
 exports.getComment = (req, resExp, next) => {
-    req.params.post_id = "64";
-    req.params.comment_id = "1";
-
     const getPostSql = "SELECT * FROM comment WHERE post_id = ? && id = ?;";
     const InsertValues = [req.params.post_id, req.params.comment_id];
     getPost = mysql.format(getPostSql, InsertValues);
@@ -43,14 +38,11 @@ exports.getComment = (req, resExp, next) => {
 
 /* Création d'un commentaire */
 exports.createComment = (req, resExp, next) => {
-    // const userId = res.UserId; //A tester lors de la mise en place du front
-    userId = 64;
-    req.params.post_id = 66;
-    req.body.comment = "mon second commentaire";
-    req.body.date = "2021-11-05";
+    const userId = res.UserId;
+    const comment = req.body.comment;
 
     const createCommentSql = "INSERT INTO comment (user_id, post_id, comment, date) VALUES (?, ?, ?, ?);";
-    const insertValues = [userId, req.params.post_id, req.body.comment, req.body.date];
+    const insertValues = [userId, req.params.post_id, comment, NOW()];
     createComment = mysql.format(createCommentSql, insertValues);
     connection.query(createComment, function (err, resCreateCommentFunction){
         if (!resCreateCommentFunction){
@@ -63,9 +55,6 @@ exports.createComment = (req, resExp, next) => {
 
 /* Suppression d'un commentaire */
 exports.deleteComment = (req, resExp, next) => {
-    req.params.post_id = "64";
-    req.params.comment_id = "2";
-    
     const deleteCommentSql = "DELETE FROM comment WHERE post_id = ? && id = ?;";
     const insertValues = [req.params.post_id, req.params.comment_id];
     deleteComment = mysql.format(deleteCommentSql, insertValues);
