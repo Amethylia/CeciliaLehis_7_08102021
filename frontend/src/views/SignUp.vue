@@ -8,9 +8,9 @@
                 <h1>Inscrivez-vous</h1>
                 <form @submit.prevent="signup" class="form">
                     <div class="input_container">
-                        <input v-model="lastName" type="text" name="lastname" placeholder="Nom" aria-label="Nom*" required/>
-                        <input v-model="firstName" type="text" name="firstname" placeholder="Prénom" aria-label="Prénom*" required/>
-                        <input v-model="email" type="email" name="email" placeholder="Email" aria-label="Email*" required/>
+                        <input v-model="lastName" type="text" name="lastname" placeholder="Nom*" aria-label="Nom" required/>
+                        <input v-model="firstName" type="text" name="firstname" placeholder="Prénom*" aria-label="Prénom" required/>
+                        <input v-model="email" type="email" name="email" placeholder="Email*" aria-label="Email" required/>
                         <input v-model="password" type="password" name="password" placeholder="Mot de passe*" aria-label="Mot de passe" required/>
                     </div>
                     <p v-if="error.length >= 1" class="error_message">{{error}}</p>
