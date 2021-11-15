@@ -29,10 +29,10 @@
         name: "SignUp",
         data() {
             return {
-            lastName: 'lehis',    
-            firstName: 'cécilia',
-            email: 'cecilia.lehis30@gmail.com',
-            password: 'Test20KL20',
+            lastName: '',    
+            firstName: '',
+            email: '',
+            password: '',
             error: ''
             }
             
