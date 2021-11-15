@@ -43,39 +43,6 @@ p {
   }
 }
 
-@font-face {
-  font-family: "gp";
-  src: url("/frontend/src/assets/fonts/gp.eot");
-  src: url("/frontend/src/assets/fonts/gp.eot") format("embedded-opentype"), url("/frontend/src/assets/fonts/gp.ttf") format("truetype"), url("/frontend/src/assets/fonts/gp.woff") format("woff"), url("/frontend/src/assets/fonts/gp.svg") format("svg");
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
-}
-i {
-  /* use !important to prevent issues with browser extensions that change fonts */
-  font-family: "gp" !important;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  /* Better Font Rendering =========== */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.gpico-password:before {
-  content: "\e900";
-}
-
-.gpico-user:before {
-  content: "\e901";
-}
-
-.gpico-contact:before {
-  content: "\e902";
-}
-
 /* font & icons */
 .button {
   padding: 11px 35px;
@@ -206,6 +173,14 @@ body {
 }
 #app main .container .form_container .form .send_container .link:hover {
   text-decoration: underline;
+}
+
+/* page userprofile */
+.user_profile form {
+  display: none;
+}
+.user_profile form.active {
+  display: block;
 }
 
 /* footer */
