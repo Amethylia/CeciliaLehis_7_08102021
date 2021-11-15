@@ -6,14 +6,14 @@
         <div id="login_container" class="container">
             <div class="form_container">
                 <h1>Connectez-vous</h1>
-                <form class="form">
+                <form @submit.prevent="login" class="form">
                     <div class="input_container">
-                        <input id="email" v-model="email" type="email" name="email" placeholder="Email" aria-label="Email" required/>
-                        <input id="password" v-model="password" type="password" name="password" placeholder="Mot de passe" aria-label="Mot de passe" required/>  
+                        <input v-model="email" type="email" name="email" placeholder="Email*" aria-label="Email" required/>
+                        <input v-model="password" type="password" name="password" placeholder="Mot de passe*" aria-label="Mot de passe" required/>  
                     </div>
-                    <p v-if="error.length > 0" class="error_message">{{error}}</p>
+                    <p v-if="error.length >= 1" class="error_message">{{error}}</p>
                     <div class="send_container">
-                        <button class="button" @click="submit()">Connexion</button>
+                        <button class="button" type="submit">Connexion</button>
                         <p>Vous n'avez pas encore de compte ? <a href="/#/signup" class="link">Inscrivez-vous</a></p>
                     </div>
                 </form>
@@ -27,29 +27,32 @@
         name: "Login",
         data() {
             return {
-            email: '',
-            password: '',
+            email: 'cecilia.lehis30@gmail.com',
+            password: 'Test20KL20',
             error: '',
             }
         },
         methods: {
-            submit(){
-                if (this.email && this.password) {
-                    const url = "http://localhost:3000/api/user/login";
+            login(){
+                const user = {
+                    "email": this.email,
+                    "password": this.password
+                }
+                if (user.email && user.password) {
                     const requestOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify( this.email, this.password )
+                        body: JSON.stringify(user)
                     }
-                    fetch(url, requestOptions)
-                    .then(res => res.json())
-                    .then((res) => {
-                            if (res.userId && res.token) {
-                                localStorage.setItem("userId", res.userId)
-                                localStorage.setItem("token", res.token)
-                                this.$router.push("posts");
+                    fetch("http://localhost:3000/api/auth/login", requestOptions)
+                    .then(response => response.json())
+                    .then((data) => {
+                            if (data.userId && data.token) {
+                                localStorage.setItem("userId", data.userId)
+                                localStorage.setItem("token", data.token)
+                                this.$router.push("/posts");
                             } else {
-                                this.error = res.message
+                                this.error = data.message
                             }
                         })
                     .catch(error => console.log(error))
@@ -85,5 +88,3 @@
     // Puis à chaque fois que la fenêtre est redimensionnée
     addEvent(window, "resize", adaptToWindowSize);
 </script>
-
-<style src="../assets/css/style.css"></style>

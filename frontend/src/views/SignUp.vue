@@ -7,13 +7,13 @@
             <div class="form_container">
                 <h1>Inscrivez-vous</h1>
                 <form @submit.prevent="signup" class="form">
-                    <div v-on:click = "changeColor" class="input_container">
-                        <input :class="{ active: isActive }" id="lastname" v-model="lastName" type="text" name="lastname" placeholder="Nom" aria-label="Nom" required/>
-                        <input :class="{ active: isActive }" id="firstname" v-model="firstName" type="text" name="firstname" placeholder="Prénom" aria-label="Prénom" required/>
-                        <input id="email" v-model="email" type="email" name="email" placeholder="Email" aria-label="Email" required/>
-                        <input id="password" v-model="password" type="password" name="password" placeholder="Mot de passe" aria-label="Mot de passe" required/>
+                    <div class="input_container">
+                        <input v-model="lastName" type="text" name="lastname" placeholder="Nom" aria-label="Nom*" required/>
+                        <input v-model="firstName" type="text" name="firstname" placeholder="Prénom" aria-label="Prénom*" required/>
+                        <input v-model="email" type="email" name="email" placeholder="Email" aria-label="Email*" required/>
+                        <input v-model="password" type="password" name="password" placeholder="Mot de passe*" aria-label="Mot de passe" required/>
                     </div>
-                    <p v-if="error.length > 0" class="error_message">{{error}}</p>
+                    <p v-if="error.length >= 1" class="error_message">{{error}}</p>
                     <div class="send_container">
                         <button class="button" type="submit">Inscription</button>
                         <p>Vous avez déjà un compte ? <a href="/#/" class="link">Connectez-vous</a></p>
@@ -30,27 +30,14 @@
         data() {
             return {
             lastName: 'lehis',    
-            firstName: 'cecilia',
-            email: 'cecilia.lehis@gmail.com',
-            password: 'Testmdp20p',
-            error: '',
-            isActive: false
+            firstName: 'cécilia',
+            email: 'cecilia.lehis30@gmail.com',
+            password: 'Test20KL20',
+            error: ''
             }
             
         },
         methods: {
-            changeColor(event) {
-                console.log(event);
-                switch(event.srcElement.id)
-                {
-                    case "lastname" : console.log("lastname");
-                    this.isActive = !this.isActive;
-                    break;
-                    case "firstname" : console.log("firstame");
-                    this.isActive = !this.isActive;
-                    break;
-                }
-            },
             signup(){
                 const user = {
                     "lastName": this.lastName,
@@ -58,22 +45,19 @@
                     "email": this.email,
                     "password": this.password
                 }
-                console.log(user);
                 if (user.lastName && user.firstName && user.email && user.password) {
                     const requestOptions = {
-                        // mode: 'no-cors',
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(user)
                     }
-                    console.log(requestOptions);
-                    fetch("http://localhost:3000/api/user/signup", requestOptions)
+                    fetch("http://localhost:3000/api/auth/signup", requestOptions)
                     .then(response => response.json())
                     .then((data) => {
                             if (data.userId && data.token) {
                                 localStorage.setItem("userId", data.userId)
                                 localStorage.setItem("token", data.token)
-                                this.$router.push("posts");
+                                this.$router.push("/posts");
                             } else {
                                 this.error = data.message;
                             }
@@ -111,14 +95,3 @@
     // Puis à chaque fois que la fenêtre est redimensionnée
     addEvent(window, "resize", adaptToWindowSize);
 </script>
-
-<style>
-.blueColor {
-    color:blue;
-    background-color:lightblue;
-}
-.redColor {
-    color:red;
-    background-color:lightcoral;
-}
-    </style>
