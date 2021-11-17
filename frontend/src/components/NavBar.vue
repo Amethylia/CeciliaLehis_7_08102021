@@ -2,9 +2,9 @@
     <header>
         <nav>
             <router-link to="/posts" aria-label="page d'actualités" aria-labelledby="lien">
-                <img src="../assets/logo_horizontal.svg" class="logo" alt="logo_groupomania" style="width:200px;"/>
+                <img src="../assets/logo_horizontal.svg" class="logo" alt="logo_groupomania"/>
             </router-link>
-            <div class="nav-links">
+            <div class="nav_links">
                 <router-link to="/newpost" aria-label="page de création d'une publication" aria-labelledby="lien">
                     <p>publier</p>
                 </router-link> 

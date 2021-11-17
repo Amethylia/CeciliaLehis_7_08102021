@@ -11,7 +11,7 @@
                         <input v-model="email" type="email" name="email" placeholder="Email*" aria-label="Email" required/>
                         <input v-model="password" type="password" name="password" placeholder="Mot de passe*" aria-label="Mot de passe" required/>  
                     </div>
-                    <p v-if="error.length >= 1" class="error_message">{{error}}</p>
+                    <p v-if="errorLogin.length >= 1" class="error_message"> {{ errorLogin }} </p>
                     <div class="send_container">
                         <button class="button" type="submit">Connexion</button>
                         <p>Vous n'avez pas encore de compte ? <a href="/#/signup" class="link">Inscrivez-vous</a></p>
@@ -27,9 +27,9 @@
         name: "Login",
         data() {
             return {
-            email: 'cecilia.lehis30@gmail.com',
+            email: 'cecilia.lehis@gmail.com',
             password: 'Test20KL20',
-            error: '',
+            errorLogin: '',
             }
         },
         methods: {
@@ -45,17 +45,24 @@
                         body: JSON.stringify(user)
                     }
                     fetch("http://localhost:3000/api/auth/login", requestOptions)
-                    .then(response => response.json())
-                    .then((data) => {
-                            if (data.userId && data.token) {
-                                localStorage.setItem("userId", data.userId)
-                                localStorage.setItem("token", data.token)
-                                this.$router.push("/posts");
-                            } else {
-                                this.error = data.message
-                            }
+                    .then((response) => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        return response.json().then((body) => {
+                            throw new Error(body.error)
                         })
-                    .catch(error => console.log(error))
+                    })
+                    .then((data) => {
+                        if (data.userId && data.token) {
+                            localStorage.setItem("userId", data.userId)
+                            localStorage.setItem("token", data.token)
+                            this.$router.push("/posts");
+                        }
+                    })
+                    .catch((error) => {
+                        this.errorLogin = error.message;
+                    })
                 }
             }
         },

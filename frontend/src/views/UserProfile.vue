@@ -10,15 +10,15 @@
         <form :class="{ active: isActive }">
             <h1>Modifier mon profil</h1>
             <label for="new_lastName">
-                <input v-model="newProfile.lastName" id="new_lastName" placeholder="Nom*" required/>
+                <input v-model="newProfile.lastName" id="new_lastName" placeholder="Nom"/>
             </label>
             <label for="new_firstName">
-                <input v-model="newProfile.firstName" id="new_firstName" placeholder="Prénom*" required/>
+                <input v-model="newProfile.firstName" id="new_firstName" placeholder="Prénom"/>
             </label>
             <label for="new_email">
-                <input v-model="newProfile.email" id="new_email" placeholder="Email*" required/>
+                <input v-model="newProfile.email" id="new_email" placeholder="Email"/>
             </label>
-            <p v-if="updateMessage.length >= 1" class="error_message">{{ updateMessage }}</p>
+            <p v-if="errorEmail.length >= 1" class="error_message">{{ errorEmail }}</p>
             <button @click="modifyProfile">Valider</button>
         </form>
     </div>
@@ -41,7 +41,7 @@ export default {
                 email: ""
             },
             newProfile: {},
-            updateMessage: ""
+            errorEmail: ""
         }
     },
     methods: {
@@ -74,9 +74,8 @@ export default {
             fetch(`http://localhost:3000/api/auth/:${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then(data => {
-                    this.userProfile = data;
                     this.newProfile = {};
-                    this.$router.push("/userprofile");
+                    this.userProfile = data;
                 })
                 .catch(error => console.log(error))
         },

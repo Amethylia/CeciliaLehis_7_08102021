@@ -13,7 +13,7 @@
                         <input v-model="email" type="email" name="email" placeholder="Email*" aria-label="Email" required/>
                         <input v-model="password" type="password" name="password" placeholder="Mot de passe*" aria-label="Mot de passe" required/>
                     </div>
-                    <p v-if="error.length >= 1" class="error_message">{{error}}</p>
+                    <p v-if="errorSignup.length >= 1" class="error_message"> {{ errorSignup }} </p>
                     <div class="send_container">
                         <button class="button" type="submit">Inscription</button>
                         <p>Vous avez déjà un compte ? <a href="/#/" class="link">Connectez-vous</a></p>
@@ -33,9 +33,8 @@
             firstName: '',
             email: '',
             password: '',
-            error: ''
+            errorSignup: ''
             }
-            
         },
         methods: {
             signup(){
@@ -52,17 +51,24 @@
                         body: JSON.stringify(user)
                     }
                     fetch("http://localhost:3000/api/auth/signup", requestOptions)
-                    .then(response => response.json())
+                    .then((response) => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        return response.json().then((body) => {
+                            throw new Error(body.error)
+                        })
+                    })
                     .then((data) => {
                             if (data.userId && data.token) {
-                                localStorage.setItem("userId", data.userId)
-                                localStorage.setItem("token", data.token)
+                                localStorage.setItem("userId", data.userId);
+                                localStorage.setItem("token", data.token);
                                 this.$router.push("/posts");
-                            } else {
-                                this.error = data.message;
                             }
                         })
-                    .catch(error => console.log(error))
+                    .catch((error) => {
+                        this.errorSignup = error.message;
+                    })
                 }
             }
         },
