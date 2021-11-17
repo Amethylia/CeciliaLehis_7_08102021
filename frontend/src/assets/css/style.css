@@ -86,6 +86,16 @@ body {
 }
 
 /* header */
+nav {
+  display: flex;
+}
+nav .logo {
+  width: 200px;
+}
+nav .nav_links {
+  display: flex;
+}
+
 /* page login & signup */
 @media (min-width: 1200px) {
   #app main {
@@ -180,6 +190,17 @@ body {
   display: none;
 }
 .user_profile form.active {
+  display: block;
+}
+
+/* page posts */
+.post_content .post_content_image {
+  height: 400px;
+}
+.post_content form {
+  display: none;
+}
+.post_content form.active {
   display: block;
 }
 
