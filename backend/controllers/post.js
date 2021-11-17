@@ -7,38 +7,35 @@ const connection = mysql.createConnection(config.databaseOptions);
 
 /* Récupération de tous les posts */
 exports.getAllPosts = (req, resExp, next) => {
-    const getAllPosts = "SELECT id FROM post;";
+    const getAllPosts = "SELECT post.id, user_id, title, picture_url, description, last_name, first_name FROM post INNER JOIN user ON post.user_id = user.id";
     connection.query(getAllPosts, function (err, resGetAllPostsFunction) {
         if(!resGetAllPostsFunction) {
             return resExp.status(400).json({ error: 'Aucun post publié !' });
         } else {
-            return resExp.status(200).json({ message: "Voici le(s) post(s) publié(s) !" });
+            return resExp.status(200).json({ 
+                message: "Voici le(s) post(s) publié(s) !",
+                resGetAllPostsFunction });
         }
     });
 }
 
-/* Récupération d'un post */
-exports.getPost = (req, resExp, next) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+// /* Récupération d'un post */
+// exports.getPost = (req, resExp, next) => {
+//     const token = req.headers.authorization.split(' ')[1];
+//     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+//     const userId = decodedToken.userId;
 
-    const getPostSql = "SELECT title, picture_url, description FROM post WHERE id = ?";
-    const InsertValue = [userId];
-    getPost = mysql.format(getPostSql, InsertValue);
-    connection.query(getPost, function (err, resGetPostFunction) {
-        if(!resGetPostFunction) {
-            return resExp.status(400).json({ error: 'Aucun post récupéré !' });
-        } else {
-            return resExp.status(200).json({
-                message: 'Post récupéré !',
-                // titre: resGetPostFunction[0]["title"],
-                // image: resGetPostFunction[0]["picture_url"],
-                // description: resGetPostFunction[0]["description"]
-        });
-        }
-    });
-}
+//     const getPostSql = "SELECT title, picture_url, description FROM post WHERE id = ?";
+//     const InsertValue = [userId];
+//     getPost = mysql.format(getPostSql, InsertValue);
+//     connection.query(getPost, function (err, resGetPostFunction) {
+//         if(!resGetPostFunction) {
+//             return resExp.status(400).json({ error: 'Aucun post récupéré !' });
+//         } else {
+//             return resExp.status(200).json({ message: 'Post récupéré !' });
+//         }
+//     });
+// }
 
 /* Création d'un post */
 exports.createPost = (req, resExp, next) => {
@@ -48,6 +45,7 @@ exports.createPost = (req, resExp, next) => {
 
     const title = req.body.title;
     const description = req.body.description;
+    
     const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
 
     const createPostSql = "INSERT INTO post (user_id, title, picture_url, description) VALUES (?, ?, ?, ?);";
@@ -72,7 +70,7 @@ exports.modifyPost = (req, resExp, next) => {
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
 
-    const modifyInfosPost = "UPDATE post SET title = IFNULL(?, title), picture_url = IFNULL(?, picture_url), description = IFNULL(?, description) WHERE id = ?;";
+    const modifyInfosPost = "UPDATE post SET title = ?, picture_url = ?, description = ? WHERE id = ?;";
     const insertValues = [title, imageUrl, description, userId];
     modifyPost = mysql.format(modifyInfosPost, insertValues);
     connection.query(modifyPost, function (err, resModifyPostFunction) {
@@ -102,7 +100,7 @@ exports.deletePost = (req, resExp, next) => {
     const userId = decodedToken.userId;
 
     const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
-    const deletePostSql = "DELETE FROM post WHERE id = ?;";
+    const deletePostSql = "DELETE * FROM post WHERE id = ?;";
     const insertValue = [userId];
     deletePost = mysql.format(deletePostSql, insertValue);
     connection.query(deletePost, function (err, resDeletePostFunction) {
