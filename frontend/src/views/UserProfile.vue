@@ -1,27 +1,69 @@
 <template>
-    <div class="user_profile">
+    <v-app>
         <NavBar></NavBar>
-        <h1>Mon profil</h1>
-        <p>Nom : {{ userProfile.lastName }}</p>
-        <p>Prénom : {{ userProfile.firstName }}</p>
-        <p>Email : {{ userProfile.email }}</p>
-        <button @click="isActive = !isActive">Modifier mon profil</button>
-        <button @click="deleteProfile">Supprimer mon profil</button>
-        <form :class="{ active: isActive }">
-            <h1>Modifier mon profil</h1>
-            <label for="new_lastName">
-                <input v-model="newProfile.lastName" id="new_lastName" placeholder="Nom"/>
-            </label>
-            <label for="new_firstName">
-                <input v-model="newProfile.firstName" id="new_firstName" placeholder="Prénom"/>
-            </label>
-            <label for="new_email">
-                <input v-model="newProfile.email" id="new_email" placeholder="Email"/>
-            </label>
-            <p v-if="errorEmail.length >= 1" class="error_message">{{ errorEmail }}</p>
-            <button @click="modifyProfile">Valider</button>
-        </form>
-    </div>
+        <v-container class="mb-5">
+            <v-row>
+                <v-col
+                    cols="12"
+                >
+                    <h1>Mon profil</h1>
+                    <p>Nom : {{ userProfile.lastName }}</p>
+                    <p>Prénom : {{ userProfile.firstName }}</p>
+                    <p>Email : {{ userProfile.email }}</p>
+                    <div class="mt-6">
+                        <v-btn @click="isActive = !isActive" class="mr-4">Modifier</v-btn>
+                        <v-btn @click="deleteProfile" class="delete_button">Supprimer</v-btn>
+                    </div>
+                </v-col>    
+            </v-row>
+        </v-container>
+        <v-form v-model="valid" :class="{ active: isActive }" class="form_userprofile">
+            <v-container class="mb-8">
+                <h2>Modifier mon profil</h2>
+            <v-row>
+                <v-col
+                    cols="12"
+                    md="4"
+                >
+                <v-text-field
+                    v-model="newProfile.lastName"
+                    :rules="lastNameRules"
+                    :counter="10"
+                    label="Nom"
+                    id="new_lastName"
+                ></v-text-field>
+                </v-col>
+                <v-col
+                    cols="12"
+                    md="4"
+                >
+                <v-text-field
+                    v-model="newProfile.firstName"
+                    :rules="firstNameRules"
+                    :counter="10"
+                    label="Prénom"
+                    id="new_firstName"
+                ></v-text-field>
+                </v-col>
+                <v-col
+                    cols="12"
+                    md="4"
+                >
+                <v-text-field
+                    v-model="newProfile.email"
+                    :rules="emailRules"
+                    label="Email"
+                    id="new_email"
+                ></v-text-field>
+                </v-col>
+                <v-col>
+                    <v-btn @click="modifyProfile" class="mr-4">Valider</v-btn>
+                    <v-btn @click="isActive = !isActive" class="cancel_button">Annuler</v-btn>
+                </v-col>
+            </v-row>
+            </v-container>
+        </v-form>
+    </v-app>
 </template>
 
 <script>
@@ -34,6 +76,7 @@ export default {
     data() {
         return {
             isActive: false,
+            valid: false,
             userProfile: {
                 userId: localStorage.getItem("userId"),
                 lastName: "",
@@ -41,7 +84,15 @@ export default {
                 email: ""
             },
             newProfile: {},
-            errorEmail: ""
+            lastNameRules: [
+                v => v.length <= 10 || 'Le nom doit avoir moins de 10 caractères',
+            ],
+            firstNameRules: [
+                v => v.length <= 10 || 'Le prénom doit avoir moins de 10 caractères',
+            ],
+            emailRules: [
+                v => /.+@.+/.test(v) || "L'email n'est pas valide",
+            ],
         }
     },
     methods: {
@@ -73,9 +124,11 @@ export default {
             };
             fetch(`http://localhost:3000/api/auth/:${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
-                .then(data => {
+                .then((data) => {
                     this.newProfile = {};
-                    this.userProfile = data;
+                    this.userProfile.lastName = data.nom;
+                    this.userProfile.firstName = data.prenom;
+                    this.userProfile.email = data.email;
                 })
                 .catch(error => console.log(error))
         },
@@ -102,3 +155,18 @@ export default {
     }
 }
 </script>
+
+<style>
+    .v-application .primary--text {
+        color: #272b54 !important;
+        caret-color: #272b54 !important;
+    }
+
+    .form_userprofile {
+        display: none;
+    }
+
+    .form_userprofile.active {
+        display: block;
+    }
+</style>

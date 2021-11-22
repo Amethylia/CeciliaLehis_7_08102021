@@ -1,27 +1,77 @@
 <template>
-    <main>
-        <div class="logo_container">
-            <img  src="../assets/logo.svg" alt="logo_groupomania"/>
-        </div>
-        <div id="signup_container" class="container">
-            <div class="form_container">
-                <h1>Inscrivez-vous</h1>
-                <form @submit.prevent="signup" class="form">
-                    <div class="input_container">
-                        <input v-model="lastName" type="text" name="lastname" placeholder="Nom*" aria-label="Nom" required/>
-                        <input v-model="firstName" type="text" name="firstname" placeholder="Prénom*" aria-label="Prénom" required/>
-                        <input v-model="email" type="email" name="email" placeholder="Email*" aria-label="Email" required/>
-                        <input v-model="password" type="password" name="password" placeholder="Mot de passe*" aria-label="Mot de passe" required/>
-                    </div>
-                    <p v-if="errorSignup.length >= 1" class="error_message"> {{ errorSignup }} </p>
-                    <div class="send_container">
-                        <button class="button" type="submit">Inscription</button>
-                        <p>Vous avez déjà un compte ? <a href="/#/" class="link">Connectez-vous</a></p>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </main>
+    <v-app>
+        <v-form @submit.prevent="signup" v-model="valid">
+            <v-container class="signup_container">
+                <v-img
+                    max-height="180px"
+                    :src="logoVertical"
+                    alt="logo_groupomania"
+                    class="logo_logsign"
+                ></v-img>
+                <h1 class="logSign_title">Inscrivez-vous</h1>
+                <v-row>
+                    <v-col
+                        cols="12"
+                        md="3"
+                    >
+                    <v-text-field
+                        v-model="lastName"
+                        :rules="lastNameRules"
+                        :counter="10"
+                        label="Nom*"
+                        required
+                    ></v-text-field>
+                    </v-col>
+                    <v-col
+                        cols="12"
+                        md="3"
+                    >
+                    <v-text-field
+                        v-model="firstName"
+                        :rules="firstNameRules"
+                        :counter="10"
+                        label="Prénom*"
+                        required
+                    ></v-text-field>
+                    </v-col>
+                    <v-col
+                        cols="12"
+                        md="3"
+                    >
+                    <v-text-field
+                        v-model="email"
+                        :rules="emailRules"
+                        label="Email*"
+                        required
+                    ></v-text-field>
+                    </v-col>
+                    <v-col
+                        cols="12"
+                        md="3"
+                    >
+                    <v-text-field
+                        v-model="password"
+                        label="Mot de passe*"
+                        :rules="passwordRules"
+                        required
+                    ></v-text-field>
+                    </v-col>
+                    <v-container>
+                        <p v-if="errorSignup.length >= 1" class="error_message"> {{ errorSignup }} </p>
+                        <v-row>
+                            <v-col
+                                cols="12"
+                                class="d-flex align-center justify-md-center"
+                            >
+                            <v-btn type="submit" class="mr-4">Inscription</v-btn>
+                            <span>Vous avez déjà un compte ? <a href="/#/" class="link">Connectez-vous</a></span>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                </v-row>
+            </v-container>
+        </v-form>
+    </v-app>
 </template>
 
 <script>
@@ -29,11 +79,28 @@
         name: "SignUp",
         data() {
             return {
-            lastName: '',    
-            firstName: '',
-            email: '',
-            password: '',
-            errorSignup: ''
+                logoVertical: require('../assets/logo/logo_vertical.svg'),
+                valid: true,
+                lastName: '',    
+                firstName: '',
+                email: '',
+                password: '',
+                errorSignup: '',
+                lastNameRules: [
+                    v => !!v || "Le nom est requis",
+                    v => v.length <= 10 || 'Le nom doit avoir moins de 10 caractères',
+                ],
+                firstNameRules: [
+                    v => !!v || "Le prénom est requis",
+                    v => v.length <= 10 || 'Le prénom doit avoir moins de 10 caractères',
+                ],
+                emailRules: [
+                    v => !!v || "L'email est requis",
+                    v => /.+@.+/.test(v) || "L'email n'est pas valide",
+                ],
+                passwordRules: [
+                    v => !!v || 'Le mot de passe est requis'
+                ],
             }
         },
         methods: {
@@ -62,6 +129,7 @@
                     .then((data) => {
                             if (data.userId && data.token) {
                                 localStorage.setItem("userId", data.userId);
+                                localStorage.setItem("admin", data.admin);
                                 localStorage.setItem("token", data.token);
                                 this.$router.push("/posts");
                             }
@@ -76,28 +144,7 @@
             localStorage.clear();
         }
     };
-
-    //Adapter l'élement à la hauteur de la page de l'utilisateur
-    function adaptToWindowSize(){
-        var width = document.documentElement.clientWidth,
-        height = document.documentElement.clientHeight;
-    
-        var source = document.getElementById('signup_container');
-        source.style.height = height+'px';
-        source.style.width = width+'px';
-    }
-
-    // Une fonction de compatibilité pour gérer les évènements
-    function addEvent(element, type, listener){
-    if(element.addEventListener){
-        element.addEventListener(type, listener, false);
-    }else if(element.attachEvent){
-        element.attachEvent("on"+type, listener);
-    }
-    }
- 
-    // On exécute la fonction une première fois au chargement de la page
-    addEvent(window, "load", adaptToWindowSize);
-    // Puis à chaque fois que la fenêtre est redimensionnée
-    addEvent(window, "resize", adaptToWindowSize);
 </script>
+
+<style>
+</style>

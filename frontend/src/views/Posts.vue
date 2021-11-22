@@ -1,12 +1,20 @@
 <template>
-    <div>
+    <v-app>
         <NavBar></NavBar>
-        <h1>Actualité</h1>
-        <p v-if="errorPost.length >= 1" class="error_message">{{ errorPost }}</p>
-        <div>
-            <Post v-for="post in postList.slice().reverse()" v-bind:key="post.id" :post="post" @deletePost="getPostsList"></Post>
-        </div>
-    </div>
+        <v-container>
+            <v-row>
+                <v-col
+                    cols="12"
+                >
+                    <h1>Publications</h1>
+                    <p v-if="errorPost.length >= 1" class="error_message text-center">{{ errorPost }}</p>
+                    <v-row>
+                        <Post v-for="post in postList.slice().reverse()" v-bind:key="post.id" :post="post" @deletePost="getPostsList"></Post>
+                    </v-row>
+                </v-col>
+            </v-row>
+        </v-container>
+    </v-app>
 </template>
 
 <script>
@@ -35,22 +43,16 @@ export default {
                 }
             };
             fetch("http://localhost:3000/api/posts", requestOptions)
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                return response.json().then((body) => {
-                    throw new Error(body.error)
-                })
-            })
+            .then(response => response.json())
             .then((data) => {
                 if (data) {
                     this.postList = data.resGetAllPostsFunction;
                 }
+                if (!data.resGetAllPostsFunction.length > 0) {
+                    this.errorPost = "Aucune publications : Voyez cliquer sur l'avion en papier pour être le premier à publier !";
+                }
             })
-            .catch((error) => {
-                this.errorPost = error.message;
-            })
+            .catch(error => console.log(error))
         }
     },
     mounted() {
@@ -58,3 +60,6 @@ export default {
     }
 }
 </script>
+
+<style>
+</style>
