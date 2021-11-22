@@ -1,35 +1,84 @@
 <template>
-    <div>
-        <div class="post">
-            <div class="post_content">
-                <h2>{{ post.title }}</h2>
-                <img class="post_content_image" :src="post.picture_url" alt="Image"/>
-                <p class="post_content_text">{{ post.description }}</p>
-                <p class="post_info_name">posté par {{ post.last_name }} {{ post.first_name }}</p>
-                <button @click="isActive = !isActive" v-if="post.user_id == visitorId" type="submit">Modifier</button>
-                <button @click="deletePost" v-if="post.user_id == visitorId" type="submit">Supprimer</button>
-                <form :class="{ active: isActive }">
-                    <h3>Modifier la publication</h3>
-                    <label for="new_title">Titre*
-                        <input id="new_title" v-model="newPost.title" type="text" name="title" aria-label="Email" required/>
-                    </label>
-                    <label for="new_image_url">Image*
-                        <input v-on:change="uploadNewImagePost" id="new_image_url" type="file" accept="image/jpg, image/jpeg, image/png, image/gif, image/webp" name="image" required/>
-                    </label>
-                    <label for="new_description">Description*
-                        <textarea id="new_description" v-model="newPost.description" name="description" aria-label="Description" required></textarea>
-                    </label>
-                    <button @click="modifyPost">Valider</button>
-                </form>
+    <v-col
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+    >
+    <v-card class="rounded-xl mb-8">
+        <div class="post_container">
+            <v-img :src="post.picture_url" aria-label="Image" class="rounded-t-xl"></v-img>
+
+            <v-card-title class="post_title" v-model="titleValue" >{{ post.title }}</v-card-title>
+
+            <v-card-text>
+                <div>
+                    <p class="post_content_text">{{ post.description }}</p>
+                    <p class="post_info_name font-italic">posté par {{ post.last_name }} {{ post.first_name }}</p>
+                    <v-btn @click="isActive = !isActive" v-if="post.user_id == visitorId" type="submit" class="mr-4">Modifier</v-btn>
+                    <v-btn @click="deletePost" v-if="post.user_id == visitorId || admin == 1" type="submit" class="delete_button">Supprimer</v-btn> 
+                </div>
+            </v-card-text>
+
+            <v-form :class="{ active: isActive }" v-model="valid" class="form_post">
+                <v-card-title class="update_title">Modifier la publication</v-card-title>
+                <v-col
+                    cols="12"
+                >
+                <v-text-field
+                    v-model="newPost.title"
+                    label="Titre"
+                    :rules="titleRules"
+                    :counter="40"
+                    id="new_title"
+                    required
+                ></v-text-field>
+                </v-col>
+                <v-col
+                    cols="12"
+                >
+                <v-file-input
+                    v-on:change="uploadNewImagePost"
+                    accept="image/jpg, image/jpeg, image/png, image/gif, image/webp"
+                    label="Télécharger une image"
+                    id="new_image_url"
+                ></v-file-input>
+                </v-col>
+                <v-col
+                    cols="12"
+                >
+                <v-text-field
+                    v-model="newPost.description"
+                    label="Description"
+                    :rules="descriptionRules"
+                    :counter="250"
+                    id="new_description"
+                    required
+                ></v-text-field>
+                </v-col>
+                <v-col>
+                    <p v-if="error.title.length >= 1" class="error_message"> {{ error.title }} </p>
+                    <p v-if="error.img.length >= 1" class="error_message"> {{ error.img }} </p>
+                    <p v-if="error.description.length >= 1" class="error_message"> {{ error.description }} </p>
+                    <div class="d-flex align-center">
+                        <v-btn @click="modifyPost" class="mr-4">Valider</v-btn>
+                        <v-btn @click="isActive = !isActive" class="cancel_button">Annuler</v-btn>
+                    </div> 
+                </v-col>
+            </v-form>
+
+            <div class="d-flex">
+                <v-card-title class="comment_title">Commentaires</v-card-title>
+                <v-icon @click="isShow = !isShow">fas fa-chevron-down</v-icon>
             </div>
-            <div class="commments_content">
-                <h2>Commentaires</h2>
-                <p v-if="errorComment.length >= 1" class="error_message"> {{ errorComment }} </p>
-                <Comment v-for="comment in commentList.slice().reverse()" v-bind:key="comment.id" :comment="comment" @deleteComment="getCommentsList"></Comment>
-                <NewComment></NewComment>
-            </div>
+
+            <v-col :class="{ show: isShow }" class="comments_container">
+                <Comment v-for="comment in commentList.slice().reverse()" v-bind:key="comment.id" :post="post" :comment="comment" @deleteComment="getCommentsList"></Comment>
+                <NewComment :post="post" @getNewComment="getCommentsList"></NewComment>
+            </v-col>
         </div>
-    </div>
+    </v-card>
+    </v-col>
 </template>
 
 <script>
@@ -49,39 +98,81 @@ export default {
     },
     data: () => {
         return {
+            titleValue: "",
+            valid: true,
             isActive: false,
-            newPost: {},
+            isShow: false,
+            newPost: {
+                title: "",
+                imageUrl: "",
+                description: "",
+                userId: localStorage.getItem("userId")
+            },
             commentList: [],
-            errorComment: "",
-            visitorId: localStorage.getItem("userId")
+            visitorId: localStorage.getItem("userId"),
+            admin: localStorage.getItem("admin"),
+            error: {
+                title: "",
+                img: "",
+                description: ""
+            },
+            titleRules: [
+                v => !!v || "Le titre est requis",
+                v => v.length <= 40 || 'Le titre doit avoir moins de 40 caractères',
+            ],
+            descriptionRules: [
+                v => !!v || "La description est requise",
+                v => v.length <= 250 || 'La description doit avoir moins de 250 caractères',
+            ],
         }
     },
     methods: {
-        uploadNewImagePost(event) {
-            this.newPost.imageUrl = event.target.files[0];
+        uploadNewImagePost(file) {
+            this.newPost.imageUrl = file;
         },
         modifyPost() {
-            const formData = new FormData();
-            formData.append('image', this.newPost.imageUrl);
-            formData.append('title', this.newPost.title);
-            formData.append('description', this.newPost.description);
-            formData.append('userId', this.newPost.userId);
-            console.log(this.post);
-            const requestOptions = {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem("token"),
-                    'Content-Type': 'application/json'
-                },
-                body: formData,
-            };
-            fetch(`http://localhost:3000/api/posts/:${ this.post.id }`, requestOptions)
-                .then(response => response.json())
-                .then(data => {
-                    this.newPost = {};
-                    this.post = data;
-                })
-                .catch(error => console.log(error))
+            this.error.title = "";
+            this.error.img = "";
+            this.error.description = "";
+            if(this.newPost.imageUrl && this.newPost.title && this.newPost.description)
+            {
+                const formData = new FormData();
+                formData.append('image', this.newPost.imageUrl);
+                formData.append('title', this.newPost.title);
+                formData.append('description', this.newPost.description);
+                formData.append('userId', this.newPost.userId);
+                formData.append('postId', this.post.id);
+                const requestOptions = {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem("token"),
+                    },
+                    body: formData
+                };
+                fetch(`http://localhost:3000/api/posts/:${ this.post.id }`, requestOptions)
+                    .then(response => response.json())
+                    .then(data => {
+                        this.newPost = {};
+                        this.post = data.resSelectPost[0];
+                    })
+                    .catch(error => console.log(error))
+            } else {
+                this.error.title = "";
+                this.error.img = "";
+                this.error.description = "";
+                if(!this.newPost.title)
+                {
+                    this.error.title = "Veuillez ajouter un titre ";
+                }
+                if(!this.newPost.imageUrl)
+                {
+                    this.error.img = "Veuillez télécharger une image";
+                }
+                if(!this.newPost.description)
+                {
+                    this.error.description = "Veuillez ajouter une description";
+                }
+            }
         },
         deletePost() {
             const requestOptions = {
@@ -91,7 +182,7 @@ export default {
                     'Content-Type': 'application/json'
                 }
             };
-            fetch(`http://localhost:3000/api/posts/:${ this.post.id }`, requestOptions)
+            fetch(`http://localhost:3000/api/posts/${ this.post.id }`, requestOptions)
                 .then(response => response.json())
                 .then(() => {
                     this.$emit("deletePost");
@@ -99,30 +190,19 @@ export default {
                 .catch(error => console.log(error))
         },
         getCommentsList() {
-            const requestOptions = {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem("token"),
-                    'Content-Type': 'application/json'
-                }
-            };
-            fetch(`http://localhost:3000/api/comments/:${ this.post.id }`, requestOptions)
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                return response.json().then((body) => {
-                    throw new Error(body.error)
-                })
-            })
-            .then((data) => {
-                if (data) {
+                const requestOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem("token"),
+                        'Content-Type': 'application/json'
+                    },
+                };
+                fetch(`http://localhost:3000/api/comments/${ this.post.id }`, requestOptions)
+                .then(response => response.json())
+                .then((data) => {
                     this.commentList = data.resGetAllCommentsFunction;
-                }
-            })
-            .catch((error) => {
-                this.errorComment = error.message;
-            })
+                })
+                .catch(error => console.log(error))   
         }
     },
     mounted() {
@@ -130,3 +210,48 @@ export default {
     }
 }
 </script>
+
+<style>
+    .v-application .primary--text {
+        color: #272b54 !important;
+        caret-color: #272b54 !important;
+    }
+
+    .form_post {
+        display: none;
+        margin-top: 20px;
+    }
+
+    .form_post.active {
+        display: block;
+    }
+
+    .v-card__title.post_title {
+        font-size: 22px;
+    }
+
+    .v-card__title.comment_title {
+        font-size: 18px;
+    }
+
+    .v-application p.post_content_text {
+        margin-bottom: 0;
+        font-weight: 500;
+    }
+
+    .post_info_name {
+        font-size: 14px;
+    }
+
+    .update_title.v-card__title {
+        padding: 0 16px;
+    }
+
+    .comments_container {
+        display: none;
+    }
+
+    .comments_container.show {
+        display: block;
+    }
+</style>

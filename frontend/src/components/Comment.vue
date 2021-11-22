@@ -1,8 +1,8 @@
 <template>
     <div class="comment">
         <p class="comment_content">" {{ comment.comment }} "</p>
-        <p class="comment_user">Publier par {{ comment.first_name }} {{ comment.last_name }} le {{ comment.date }}</p>
-        <button @click="deleteComment" v-if="comment.user_id == visitorId" type="submit">Supprimer</button>
+        <p class="comment_user font-italic">Publier par {{ comment.first_name }} {{ comment.last_name }} le {{ comment.date }}</p>
+        <v-btn @click="deleteComment" v-if="comment.user_id == visitorId || admin == 1" type="submit" class="delete_button mb-4">Supprimer</v-btn>
     </div>
 </template> 
 
@@ -19,7 +19,8 @@ export default {
     },
     data: () => {
         return {
-            visitorId: localStorage.getItem("userId")
+            visitorId: localStorage.getItem("userId"),
+            admin: localStorage.getItem("admin")
         }
     },
     methods: {
@@ -31,13 +32,19 @@ export default {
                     'Content-Type': 'application/json'
                 }
             };
-            fetch(`http://localhost:3000/api/comments/:${ this.post.id }/:${ this.comment.id }`, requestOptions)
+            fetch(`http://localhost:3000/api/comments/${ this.post.id }/${ this.comment.id }`, requestOptions)
                 .then(response => response.json())
                 .then(() => {
-                    this.$emit("deleteComment");
+                    this.$emit("deleteComment")
                 })
                 .catch(error => console.log(error))
         },
     }
 }
 </script>
+
+<style>
+    .comment_user {
+        font-size: 14px;
+    }
+</style>
