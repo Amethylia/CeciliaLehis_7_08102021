@@ -19,24 +19,6 @@ exports.getAllPosts = (req, resExp, next) => {
     });
 }
 
-// /* Récupération d'un post */
-// exports.getPost = (req, resExp, next) => {
-//     const token = req.headers.authorization.split(' ')[1];
-//     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-//     const userId = decodedToken.userId;
-
-//     const getPostSql = "SELECT title, picture_url, description FROM post WHERE id = ?";
-//     const InsertValue = [userId];
-//     getPost = mysql.format(getPostSql, InsertValue);
-//     connection.query(getPost, function (err, resGetPostFunction) {
-//         if(!resGetPostFunction) {
-//             return resExp.status(400).json({ error: 'Aucun post récupéré !' });
-//         } else {
-//             return resExp.status(200).json({ message: 'Post récupéré !' });
-//         }
-//     });
-// }
-
 /* Création d'un post */
 exports.createPost = (req, resExp, next) => {
     const token = req.headers.authorization.split(' ')[1];
@@ -45,7 +27,7 @@ exports.createPost = (req, resExp, next) => {
 
     const title = req.body.title;
     const description = req.body.description;
-    
+
     const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
 
     const createPostSql = "INSERT INTO post (user_id, title, picture_url, description) VALUES (?, ?, ?, ?);";
@@ -62,31 +44,47 @@ exports.createPost = (req, resExp, next) => {
 
 /* Modification d'un post */
 exports.modifyPost = (req, resExp, next) => {
-    const title = req.body.title;
-    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
-    const description = req.body.description;
+    var title = req.body.title;
+    var description = req.body.description;
+    const postId = req.body.postId;
 
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
-
-    const modifyInfosPost = "UPDATE post SET title = ?, picture_url = ?, description = ? WHERE id = ?;";
-    const insertValues = [title, imageUrl, description, userId];
+    imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    
+    const selectURL = "SELECT picture_url FROM post WHERE post.id = ?";
+    const insertValue = [postId];
+    if(imageUrl)
+    {
+        imagePost = mysql.format(selectURL, insertValue);
+        connection.query(imagePost, function (err, resSelectPost) {
+            if(resSelectPost) { // Suppression de l'image réussi
+                const filename = resSelectPost[0]["picture_url"].split("/images/")[1];
+                fs.unlink(`images/${filename}`, () => {});
+            } else {
+                return resExp.status(400).json({ error: "Post non trouvé" });
+            }
+        });
+    }
+    
+    const modifyInfosPost = "UPDATE post SET title = ?, picture_url = ?, description = ? WHERE post.id = ?";
+    const insertValues = [title, imageUrl, description, postId];
     modifyPost = mysql.format(modifyInfosPost, insertValues);
     connection.query(modifyPost, function (err, resModifyPostFunction) {
         if(!resModifyPostFunction) {
             return resExp.status(400).json({ error: 'Modification du post refusée !' });
-        } else {
-            const selectImagePost = "SELECT picture_url FROM post WHERE id = ?;";
-            const insertValue = [userId];
+        } 
+        else {
+            const selectImagePost = "SELECT post.id, user_id, title, picture_url, description, last_name , first_name FROM post INNER JOIN user ON post.user_id = user.id WHERE post.id = ?";
+            const insertValue = [postId];
             imagePost = mysql.format(selectImagePost, insertValue);
-            connection.query(imagePost, function (err, resImagePostFunction) {
-                if(imageUrl) {
-                    const filename = resImagePostFunction[0]["picture_url"].split("/images/")[1];
-                    fs.unlink(`images/${filename}`, () => {});
-                    return resExp.status(200).json({ message: "Modification du post réussie & suppression de l'ancienne image du dossier images réussie !" });
-                } else {
-                    return resExp.status(200).json({ message: "Pas d'image à supprimer du dossier image & modification du post réussie !" });
+            connection.query(imagePost, function (err, resSelectPost) {
+                if(resSelectPost) {
+                    return resExp.status(200).json({ 
+                        message: "Modification du post réussie !",
+                        resSelectPost
+                    });
+                }
+                else {
+                    return resExp.status(400).json({ error: 'Post non retrouvé !' });
                 }
             });
         }
@@ -95,23 +93,31 @@ exports.modifyPost = (req, resExp, next) => {
 
 /* Suppression d'un post */
 exports.deletePost = (req, resExp, next) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+    const postId = req.params['id'];
 
-    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
-    const deletePostSql = "DELETE * FROM post WHERE id = ?;";
-    const insertValue = [userId];
-    deletePost = mysql.format(deletePostSql, insertValue);
-    connection.query(deletePost, function (err, resDeletePostFunction) {
-        if(!resDeletePostFunction) {
-            return resExp.status(400).json({ error: 'Pas de post à supprimer !' });
-        } else {
-            if(imageUrl) {
-                const filename = imageUrl.split("/images/")[1];
-                fs.unlink(`images/${filename}`, () => {});
-                return resExp.status(200).json({ message: "Post supprimé de la base de données & suppression de l'image du dossier images réussie !" });
-            }
+    const deleteImageSql = "SELECT picture_url FROM post WHERE post.id = ?";
+    const insertValue = [postId];
+    deleteImage = mysql.format(deleteImageSql, insertValue);
+    connection.query(deleteImage, function (err, resDeleteImage) {
+        if(resDeleteImage) {
+            const filename = resDeleteImage[0]["picture_url"].split("/images/")[1];
+            fs.unlink(`images/${filename}`, () => {});
+        }
+    });
+    
+    const deleteCommentSql = "DELETE FROM comment WHERE comment.post_id = ?";
+    const insertValues = [postId];
+    deleteCommentPost = mysql.format(deleteCommentSql, insertValues);
+    connection.query(deleteCommentPost, function (err, resDeleteComment) {
+        if(resDeleteComment) {
+            const deletePostSql = "DELETE FROM post WHERE post.id = ?";
+            const insertValues = [postId];
+            deletePost = mysql.format(deletePostSql, insertValues);
+            connection.query(deletePost, function (err, resDeletePost) {
+                if(resDeletePost) {
+                    return resExp.status(200).json({ message: "Post et commentaires supprimés !" });
+                }
+            });
         }
     });
 };

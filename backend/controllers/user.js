@@ -44,7 +44,7 @@ exports.signup = (req, resExp, next) => {
                 else if(!emailValidator.validate(email)) {
                     resExp.status(400).json({ error: 'Veuillez saisir une adresse mail valide !' });
                 }  else {
-                    const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?;";
+                    const loginSql = "SELECT id, last_name, first_name, email, password, is_admin FROM user WHERE email = ?;";
                     const insertValue = [email];
                     login = mysql.format(loginSql, insertValue);
                     connection.query(login, function (err, resLoginFunction) {
@@ -54,6 +54,7 @@ exports.signup = (req, resExp, next) => {
                             return resExp.status(200).json({
                                 message: 'Utilisateur créé et connecté !',
                                 userId: resLoginFunction[0]["id"],
+                                admin: resLoginFunction[0]["is_admin"],
                                 token: jwt.sign(
                                     { userId: resLoginFunction[0]["id"] },
                                     'RANDOM_TOKEN_SECRET',
@@ -78,7 +79,7 @@ exports.login = (req, resExp, next) => {
     email = req.body.email;
     password = req.body.password;
 
-    const loginSql = "SELECT id, last_name, first_name, email, password FROM user WHERE email = ?;";
+    const loginSql = "SELECT id, last_name, first_name, email, password, is_admin FROM user WHERE email = ?;";
     const insertValue = [email];
     login = mysql.format(loginSql, insertValue);
 
@@ -94,6 +95,7 @@ exports.login = (req, resExp, next) => {
                 resExp.status(200).json({
                     message: 'Utilisateur connecté !',
                     userId: resLoginFunction[0]["id"],
+                    admin: resLoginFunction[0]["is_admin"],
                     token: jwt.sign(
                         { userId: resLoginFunction[0]["id"] },
                         'RANDOM_TOKEN_SECRET',
@@ -132,12 +134,25 @@ exports.getUserAccount = (req, resExp, next) => {
 
 /* Modifier un compte utilisateur */
 exports.modifyUserAccount = (req, resExp, next) => {
-    lastName = req.body.lastName;
-    firstName = req.body.firstName;
-    email = req.body.email;
+    var lastName = req.body.lastName;
+    var firstName = req.body.firstName;
+    var email = req.body.email;
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
+
+    if(lastName == "undefined")
+    {
+        lastName = null;
+    }
+    if(firstName == "undefined")
+    {
+        firstName = null;
+    }
+    if(email == "undefined")
+    {
+        email = null;
+    }
 
     const modifyUASql = "UPDATE user SET last_name = IFNULL(?, last_name), first_name = IFNULL(?, first_name), email = IFNULL(?, email) WHERE id = ?;";
     const insertValues = [lastName, firstName, email, userId];
@@ -147,21 +162,24 @@ exports.modifyUserAccount = (req, resExp, next) => {
         if (!resModifyFunction) {
             return resExp.status(400).json({ error: 'La modification du compte a échouée !' });
         } else {
-            const sendModifyUASql = "SELECT id, last_name, first_name, email, password FROM User WHERE id = ?;";
+            const sendModifyUASql = "SELECT id, last_name, first_name, email, password FROM user WHERE id = ?;";
             const insertValue = [userId];
             SendModifyUserAccount = mysql.format(sendModifyUASql, insertValue);
             connection.query(SendModifyUserAccount, function (err, resSendModifyUAFunction) {
-                if (!resSendModifyUAFunction) {
-                    return resExp.status(400).json({ error: 'Envoie des données refusées !' });
-                } else {
+                if(resSendModifyUAFunction) {
                     return resExp.status(200).json({ 
-                        message: 'Envoie des données acceptées !',
+                        message: "Envoie des données acceptées !",
                         nom: resSendModifyUAFunction[0]["last_name"],
                         prenom: resSendModifyUAFunction[0]["first_name"],
                         email: resSendModifyUAFunction[0]["email"],
                     });
                 }
-            })
+                else {
+                    return resExp.status(400).json({ 
+                        message: "Envoie des données refusées !"
+                    });
+                }
+            });
         }
     })
 };
