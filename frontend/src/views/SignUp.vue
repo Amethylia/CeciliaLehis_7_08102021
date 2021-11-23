@@ -89,18 +89,22 @@
                 errorSignup: '',
                 lastNameRules: [
                     v => !!v || "Le nom est requis",
-                    v => v.length <= 10 || 'Le nom doit avoir moins de 10 caractères',
+                    v => (v && v.length <= 10) || 'Le nom doit avoir moins de 10 caractères',
                 ],
                 firstNameRules: [
                     v => !!v || "Le prénom est requis",
-                    v => v.length <= 10 || 'Le prénom doit avoir moins de 10 caractères',
+                    v => (v && v.length <= 10) || 'Le prénom doit avoir moins de 10 caractères',
                 ],
                 emailRules: [
                     v => !!v || "L'email est requis",
                     v => /.+@.+/.test(v) || "L'email n'est pas valide",
                 ],
                 passwordRules: [
-                    v => !!v || 'Le mot de passe est requis'
+                    v => !!v || 'Le mot de passe est requis',
+                    v => (v && v.length >= 3) || '3 caractères minimum',
+                    v => /(?=.*[A-Z])/.test(v) || '1 majuscule obligatoire',
+                    v => /(?=.*\d)/.test(v) || '1 nombre obligatoire',
+                    v => /([!@$%])/.test(v) || '1 caractère spécial obligatoire [!@#$%]'
                 ],
             }
         },
@@ -119,14 +123,7 @@
                         body: JSON.stringify(user)
                     }
                     fetch("http://localhost:3000/api/auth/signup", requestOptions)
-                    .then((response) => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        return response.json().then((body) => {
-                            throw new Error(body.error)
-                        })
-                    })
+                    .then(response => response.json())
                     .then((data) => {
                             if (data.userId && data.token) {
                                 localStorage.setItem("userId", data.userId);
@@ -135,9 +132,7 @@
                                 this.$router.push("/posts");
                             }
                         })
-                    .catch((error) => {
-                        this.errorSignup = error.message;
-                    })
+                    .catch(error => console.log(error))
                 }
             }
         },

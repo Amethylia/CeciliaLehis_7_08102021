@@ -58,10 +58,8 @@
             return {
                 logoVertical: require('../assets/logo/logo_vertical.svg'),
                 valid: true,
-                email: 'cecilia.lehis@gmail.com',
-                password: 'Test20KL20',
-                // email: '',
-                // password: '',
+                email: '',
+                password: '',
                 errorLogin: '',
                 emailRules: [
                     v => !!v || "L'email est requis",

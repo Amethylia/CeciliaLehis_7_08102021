@@ -6,20 +6,6 @@ const fs = require('fs');
 const config = require('../database/config.js');
 const connection = mysql.createConnection(config.databaseOptions);
 
-/* EmailValidator */
-const emailValidator = require('email-validator');
-
-/* PasswordValidator */
-const passwordValidator = require('password-validator');
-const schema = new passwordValidator();
-schema
-.is().min(8)                                
-.is().max(30)                               
-.has().uppercase()                           
-.has().lowercase()
-.has().not().spaces()                           
-.is().not().oneOf(['Passw0rd', 'Password123']);
-
 
 /* Inscription */
 exports.signup = (req, resExp, next) => {
@@ -39,12 +25,7 @@ exports.signup = (req, resExp, next) => {
             const insertValues = [lastName, firstName, email, hash];
             signup = mysql.format(signupSql, insertValues);
             connection.query(signup, function (err, resSignupFunction) {
-                if(!emailValidator.validate(email)) {
-                    resExp.status(400).json({ error: 'Veuillez saisir une adresse mail valide !' });
-                }
-                if(!schema.validate(password)) {
-                    resExp.status(400).json({ error: 'Le mot de passe doit être composé de 8 caractères dont au moins: 1 majuscule et 1 minuscule. Les espaces ne sont pas autorisés !' });  
-                } else {
+                if (resSignupFunction) {
                     const loginSql = "SELECT id, last_name, first_name, email, password, is_admin FROM user WHERE email = ?;";
                     const insertValue = [email];
                     login = mysql.format(loginSql, insertValue);
@@ -77,23 +58,20 @@ exports.signup = (req, resExp, next) => {
 
 /* Connexion */
 exports.login = (req, resExp, next) => {
-    email = req.body.email;
-    password = req.body.password;
+    const email = req.body.email;
+    const password = req.body.password;
 
     const loginSql = "SELECT id, last_name, first_name, email, password, is_admin FROM user WHERE email = ?;";
     const insertValue = [email];
     login = mysql.format(loginSql, insertValue);
-
     connection.query(login, function (err, resLoginFunction) {
-        if (!resLoginFunction) {
-            return resExp.status(400).json({ error: 'Utilisateur non trouvé !' });
-        } else {
+        if(resLoginFunction) {
             bcrypt.compare(password, resLoginFunction[0]["password"])
             .then(valid => {
                 if (!valid) {
                     return resExp.status(400).json({ error: 'Mot de passe incorrect !' });
                 }
-                resExp.status(200).json({
+                return resExp.status(200).json({
                     message: 'Utilisateur connecté !',
                     userId: resLoginFunction[0]["id"],
                     admin: resLoginFunction[0]["is_admin"],
@@ -184,14 +162,7 @@ exports.modifyUserAccount = (req, resExp, next) => {
 /* Supprimer un compte utilisateur */
 exports.deleteUserAccount = (req, resExp, next) => {
     const userId = req.params['id'];
-
     const insertValue = [userId];
-
-    const deleteUserAccountSql = "DELETE FROM user WHERE id = ?;";
-    deleteUserAccount = mysql.format(deleteUserAccountSql, insertValue);
-    connection.query(deleteUserAccount, function (err, resDeleteFunction) {
-       
-    });
 
     const deleteImageSql = "SELECT picture_url FROM post WHERE user_id = ?";
     deleteImage = mysql.format(deleteImageSql, insertValue);
@@ -207,17 +178,21 @@ exports.deleteUserAccount = (req, resExp, next) => {
         }
     });
 
-    const deleteCommentSql = "DELETE FROM comment WHERE comment.user_id = ?";
+    const deleteCommentSql = "DELETE FROM comment WHERE comment.user_id = ?;";
     deleteCommentPost = mysql.format(deleteCommentSql, insertValue);
     connection.query(deleteCommentPost, function (err, resDeleteComment) {
-        if(resDeleteComment) {
-            const deletePostSql = "DELETE FROM post WHERE post.user_id = ?";
-            deletePost = mysql.format(deletePostSql, insertValue);
-            connection.query(deletePost, function (err, resDeletePost) {
-                if(resDeletePost) {
-                    return resExp.status(200).json({ message: "Posts et commentaires lié au compte supprimés !" });
-                }
+        const deletePostSql = "DELETE FROM post WHERE post.user_id = ?;";
+        deletePost = mysql.format(deletePostSql, insertValue);
+        connection.query(deletePost, function (err, resDeletePost) {
+            const deleteUserAccountSql = "DELETE FROM user WHERE id = ?;";
+            deleteUserAccount = mysql.format(deleteUserAccountSql, insertValue);
+            connection.query(deleteUserAccount, function (err, resDeleteFunctionWithPostAndComment) {
             });
-        }
+        });
+    });
+
+    const deleteUserAccountSql = "DELETE FROM user WHERE id = ?;";
+    deleteUserAccount = mysql.format(deleteUserAccountSql, insertValue);
+    connection.query(deleteUserAccount, function (err, resDeleteFunction) {
     });
 };
