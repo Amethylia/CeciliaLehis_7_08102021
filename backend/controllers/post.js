@@ -46,7 +46,7 @@ exports.createPost = (req, resExp, next) => {
 exports.modifyPost = (req, resExp, next) => {
     var title = req.body.title;
     var description = req.body.description;
-    const postId = req.body.postId;
+    const postId = req.params['id'];
 
     imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
     

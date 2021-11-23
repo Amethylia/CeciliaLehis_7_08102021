@@ -109,7 +109,7 @@ export default {
                     'Content-Type': 'application/json'
                 }
             };
-            fetch(`http://localhost:3000/api/auth/:${ this.userProfile.userId }`, requestOptions)
+            fetch(`http://localhost:3000/api/auth/${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then(data => {
                     this.userProfile.lastName = data.nom;
@@ -127,7 +127,7 @@ export default {
                 },
                 body: JSON.stringify(this.newProfile),
             };
-            fetch(`http://localhost:3000/api/auth/:${ this.userProfile.userId }`, requestOptions)
+            fetch(`http://localhost:3000/api/auth/${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then((data) => {
                     this.newProfile = {};

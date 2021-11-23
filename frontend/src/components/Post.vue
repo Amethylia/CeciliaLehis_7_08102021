@@ -142,7 +142,6 @@ export default {
                 formData.append('title', this.newPost.title);
                 formData.append('description', this.newPost.description);
                 formData.append('userId', this.newPost.userId);
-                formData.append('postId', this.postData.id);
                 const requestOptions = {
                     method: 'PUT',
                     headers: {
@@ -150,7 +149,7 @@ export default {
                     },
                     body: formData
                 };
-                fetch(`http://localhost:3000/api/posts/:${ this.postData.id }`, requestOptions)
+                fetch(`http://localhost:3000/api/posts/${ this.postData.id }`, requestOptions)
                     .then(response => response.json())
                     .then((data) => {
                         this.newPost = {};

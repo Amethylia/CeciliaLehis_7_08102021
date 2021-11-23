@@ -111,9 +111,7 @@ exports.login = (req, resExp, next) => {
 
 /* Récupérer un compte utilisateur */
 exports.getUserAccount = (req, resExp, next) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+    const userId = req.params['id'];
 
     const getUASql = "SELECT last_name, first_name, email FROM user WHERE id = ?;";
     const insertValue = [userId];
@@ -138,9 +136,7 @@ exports.modifyUserAccount = (req, resExp, next) => {
     var lastName = req.body.lastName;
     var firstName = req.body.firstName;
     var email = req.body.email;
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+    const userId = req.params['id'];
 
     if(lastName == "undefined")
     {
@@ -187,11 +183,7 @@ exports.modifyUserAccount = (req, resExp, next) => {
 
 /* Supprimer un compte utilisateur */
 exports.deleteUserAccount = (req, resExp, next) => {
-    // const token = req.headers.authorization.split(' ')[1];
-    // const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    // const userId = decodedToken.userId;
     const userId = req.params['id'];
-    console.log(userId);
 
     const insertValue = [userId];
 
