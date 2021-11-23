@@ -1,6 +1,6 @@
 <template>
     <div class="comment">
-        <p class="comment_content">" {{ comment.comment }} "</p>
+        <p class="mb-0">" {{ comment.comment }} "</p>
         <p class="comment_user font-italic">Publier par {{ comment.first_name }} {{ comment.last_name }} le {{ comment.date }}</p>
         <v-btn @click="deleteComment" v-if="comment.user_id == visitorId || admin == 1" type="submit" class="delete_button mb-4">Supprimer</v-btn>
     </div>

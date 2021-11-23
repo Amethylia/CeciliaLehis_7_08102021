@@ -67,6 +67,10 @@ h2 {
     color: #272b54;
 }
 
+.v-btn--disabled {
+    border-radius: 20px;
+}
+
 /*icons*/
 .v-icon.v-icon {
     font-size: 22px;

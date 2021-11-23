@@ -39,12 +39,12 @@ exports.signup = (req, resExp, next) => {
             const insertValues = [lastName, firstName, email, hash];
             signup = mysql.format(signupSql, insertValues);
             connection.query(signup, function (err, resSignupFunction) {
+                if(!emailValidator.validate(email)) {
+                    resExp.status(400).json({ error: 'Veuillez saisir une adresse mail valide !' });
+                }
                 if(!schema.validate(password)) {
                     resExp.status(400).json({ error: 'Le mot de passe doit être composé de 8 caractères dont au moins: 1 majuscule et 1 minuscule. Les espaces ne sont pas autorisés !' });  
-                }
-                else if(!emailValidator.validate(email)) {
-                    resExp.status(400).json({ error: 'Veuillez saisir une adresse mail valide !' });
-                }  else {
+                } else {
                     const loginSql = "SELECT id, last_name, first_name, email, password, is_admin FROM user WHERE email = ?;";
                     const insertValue = [email];
                     login = mysql.format(loginSql, insertValue);

@@ -32,7 +32,8 @@ exports.createPost = (req, resExp, next) => {
 
     const createPostSql = "INSERT INTO post (user_id, title, picture_url, description) VALUES (?, ?, ?, ?);";
     const insertValues = [userId, title, imageUrl, description];
-    createPost = mysql.format(createPostSql, insertValues);
+    if (imageUrl) {
+        createPost = mysql.format(createPostSql, insertValues);
     connection.query(createPost, function (err, resCreatePostFunction){
         if (!resCreatePostFunction){
             return resExp.status(400).json({ error: 'Création du post refusée !' });
@@ -40,6 +41,7 @@ exports.createPost = (req, resExp, next) => {
             return resExp.status(200).json({ message: 'Création du post réussie !' });
         }
     })
+    }
 };
 
 /* Modification d'un post */

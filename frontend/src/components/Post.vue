@@ -42,6 +42,7 @@
                     accept="image/jpg, image/jpeg, image/png, image/gif, image/webp"
                     label="Télécharger une image*"
                     id="new_image_url"
+                    required
                 ></v-file-input>
                 </v-col>
                 <v-col
@@ -61,7 +62,7 @@
                     <p v-if="error.img.length >= 1" class="error_message"> {{ error.img }} </p>
                     <p v-if="error.description.length >= 1" class="error_message"> {{ error.description }} </p>
                     <div class="d-flex align-center">
-                        <v-btn @click="modifyPost" class="mr-4">Valider</v-btn>
+                        <v-btn @click="modifyPost()" class="mr-4">Valider</v-btn>
                         <v-btn @click="isActive = !isActive" class="cancel_button">Annuler</v-btn>
                     </div> 
                 </v-col>
@@ -135,7 +136,7 @@ export default {
             this.error.title = "";
             this.error.img = "";
             this.error.description = "";
-            if(this.$refs.entryFormPost.validate())
+            if(this.$refs.entryFormPost.validate() && this.newPost.imageUrl)
             {
                 const formData = new FormData();
                 formData.append('image', this.newPost.imageUrl);
@@ -154,6 +155,7 @@ export default {
                     .then((data) => {
                         this.newPost = {};
                         this.postData = data.resSelectPost[0];
+                        this.isActive = false
                     })
                     .catch(error => console.log(error))
             } else {

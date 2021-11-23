@@ -134,6 +134,7 @@ export default {
                     this.userProfile.lastName = data.nom;
                     this.userProfile.firstName = data.prenom;
                     this.userProfile.email = data.email;
+                    this.isActive = false
                 })
                 .catch(error => console.log(error))
         },

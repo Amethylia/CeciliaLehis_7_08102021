@@ -148,4 +148,12 @@
 </script>
 
 <style>
+    .v-application a{
+        color: #FD2D01;
+    }
+
+    .v-application .primary--text {
+        color: #272b54 !important;
+        caret-color: #272b54 !important;
+    }
 </style>

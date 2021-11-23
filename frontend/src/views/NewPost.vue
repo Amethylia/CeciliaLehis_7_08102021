@@ -27,6 +27,7 @@
                         accept="image/jpg, image/jpeg, image/png, image/gif, image/webp"
                         label="Télécharger une image*"
                         id="image_post"
+                        required
                     ></v-file-input>
                     </v-col>
                     <v-col
@@ -74,11 +75,11 @@ export default {
             errorNewPost: "",
             titleRules: [
                 v => !!v || 'Le titre est requis',
-                v => v.length <= 40 || 'Le titre doit avoir moins de 40 caractères'
+                v => v && v.length <= 40 || 'Le titre doit avoir moins de 40 caractères'
             ],
             descriptionRules: [
                 v => !!v || 'La description est requise',
-                v => v.length <= 250 || 'La description doit avoir moins de 250 caractères'
+                v => v && v.length <= 250 || 'La description doit avoir moins de 250 caractères'
             ],
         }
     },
@@ -90,7 +91,7 @@ export default {
             this.postInfo.imageUrl = file;
         },
         publishPost() {
-            if(this.$refs.entryFormNewPost.validate())
+            if(this.$refs.entryFormNewPost.validate() && this.postInfo.imageUrl)
             {
                 const formData = new FormData();
                 formData.append('image', this.postInfo.imageUrl);
@@ -113,7 +114,7 @@ export default {
                 .catch(error => console.log(error))
             }
             else {
-                this.errorNewPost = "Veuillez remplir les champs";
+                this.errorNewPost = "Veuillez remplir les champs !";
             }
         }
     }
