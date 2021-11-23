@@ -1,7 +1,7 @@
 <template>
 	<v-app>
 		<NavBar></NavBar>
-        <v-form v-on:submit.prevent="publishPost" v-model="valid">
+        <v-form ref="entryFormNewPost" v-on:submit.prevent="publishPost" v-model="valid">
             <v-container>
                 <h1>Ajouter une publication</h1>
                 <v-row>
@@ -90,7 +90,7 @@ export default {
             this.postInfo.imageUrl = file;
         },
         publishPost() {
-            if(this.postInfo.imageUrl)
+            if(this.$refs.entryFormNewPost.validate())
             {
                 const formData = new FormData();
                 formData.append('image', this.postInfo.imageUrl);
@@ -113,7 +113,7 @@ export default {
                 .catch(error => console.log(error))
             }
             else {
-                this.errorNewPost = "Veuillez télécharger une image";
+                this.errorNewPost = "Veuillez remplir les champs";
             }
         }
     }

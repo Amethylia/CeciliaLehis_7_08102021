@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 const config = require('../database/config.js');
 const connection = mysql.createConnection(config.databaseOptions);
@@ -186,19 +187,45 @@ exports.modifyUserAccount = (req, resExp, next) => {
 
 /* Supprimer un compte utilisateur */
 exports.deleteUserAccount = (req, resExp, next) => {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-    const userId = decodedToken.userId;
+    // const token = req.headers.authorization.split(' ')[1];
+    // const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+    // const userId = decodedToken.userId;
+    const userId = req.params['id'];
+    console.log(userId);
+
+    const insertValue = [userId];
 
     const deleteUserAccountSql = "DELETE FROM user WHERE id = ?;";
-    const insertValue = [userId];
     deleteUserAccount = mysql.format(deleteUserAccountSql, insertValue);
-
     connection.query(deleteUserAccount, function (err, resDeleteFunction) {
-        if (!resDeleteFunction) {
-            return resExp.status(400).json({ error: 'La suppression du compte a échouée !' });
-        } else {
-            return resExp.status(200).json({ message: 'La suppression du compte a réussi !' });
+       
+    });
+
+    const deleteImageSql = "SELECT picture_url FROM post WHERE user_id = ?";
+    deleteImage = mysql.format(deleteImageSql, insertValue);
+    connection.query(deleteImage, function (err, resDeleteImage) {
+        if(resDeleteImage) {
+            for(let i=0; i < resDeleteImage.length; i++) {              
+                if(resDeleteImage[i]["picture_url"] != null) {
+                  let imageDelete = resDeleteImage[i]["picture_url"]
+                  const filename = imageDelete.split("/images/")[1];
+                  fs.unlink(`images/${filename}`, () => {});
+                }
+              }
         }
-    })
+    });
+
+    const deleteCommentSql = "DELETE FROM comment WHERE comment.user_id = ?";
+    deleteCommentPost = mysql.format(deleteCommentSql, insertValue);
+    connection.query(deleteCommentPost, function (err, resDeleteComment) {
+        if(resDeleteComment) {
+            const deletePostSql = "DELETE FROM post WHERE post.user_id = ?";
+            deletePost = mysql.format(deletePostSql, insertValue);
+            connection.query(deletePost, function (err, resDeletePost) {
+                if(resDeletePost) {
+                    return resExp.status(200).json({ message: "Posts et commentaires lié au compte supprimés !" });
+                }
+            });
+        }
+    });
 };

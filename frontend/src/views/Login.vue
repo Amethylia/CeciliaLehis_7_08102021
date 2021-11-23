@@ -1,6 +1,6 @@
 <template>
     <v-app>
-        <v-form @submit.prevent="login" v-model="valid">
+        <v-form ref="entryFormLogin" @submit.prevent="login" v-model="valid">
             <v-container class="login_container">
                 <v-img
                     max-height="180px"
@@ -27,13 +27,14 @@
                     >
                     <v-text-field
                         v-model="password"
+                        type="password"
                         label="Mot de passe*"
                         :rules="passwordRules"
                         required
                     ></v-text-field>
                     </v-col>
                     <v-container>
-                        <p v-if="errorLogin.length >= 1" class="error_message"> {{ errorLogin }} </p>
+                        <p v-if="errorLogin.length >= 1" class="error_message text-center"> {{ errorLogin }} </p>
                         <v-row>
                             <v-col
                                 cols="12"
@@ -73,11 +74,11 @@
         },
         methods: {
             login(){
-                const user = {
-                    "email": this.email,
-                    "password": this.password
-                }
-                if (user.email && user.password) {
+                if (this.$refs.entryFormLogin.validate()) {
+                    const user = {
+                        "email": this.email,
+                        "password": this.password
+                    }
                     const requestOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

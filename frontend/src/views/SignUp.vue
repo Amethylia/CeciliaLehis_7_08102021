@@ -1,6 +1,6 @@
 <template>
     <v-app>
-        <v-form @submit.prevent="signup" v-model="valid">
+        <v-form ref="entryForm" @submit.prevent="signup" v-model="valid">
             <v-container class="signup_container">
                 <v-img
                     max-height="180px"
@@ -51,13 +51,14 @@
                     >
                     <v-text-field
                         v-model="password"
+                        type="password"
                         label="Mot de passe*"
                         :rules="passwordRules"
                         required
                     ></v-text-field>
                     </v-col>
                     <v-container>
-                        <p v-if="errorSignup.length >= 1" class="error_message"> {{ errorSignup }} </p>
+                        <p v-if="errorSignup.length >= 1" class="error_message text-center"> {{ errorSignup }} </p>
                         <v-row>
                             <v-col
                                 cols="12"
@@ -105,13 +106,13 @@
         },
         methods: {
             signup(){
-                const user = {
-                    "lastName": this.lastName,
-                    "firstName": this.firstName,
-                    "email": this.email,
-                    "password": this.password
-                }
-                if (user.lastName && user.firstName && user.email && user.password) {
+                if (this.$refs.entryForm.validate()) {
+                    const user = {
+                        "lastName": this.lastName,
+                        "firstName": this.firstName,
+                        "email": this.email,
+                        "password": this.password
+                    }
                     const requestOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

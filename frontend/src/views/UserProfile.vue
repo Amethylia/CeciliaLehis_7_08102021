@@ -73,6 +73,11 @@ export default {
     components: {
         NavBar
     },
+    props: {
+        post: {
+            type: Object
+        }
+    },
     data() {
         return {
             isActive: false,
@@ -85,10 +90,10 @@ export default {
             },
             newProfile: {},
             lastNameRules: [
-                v => v.length <= 10 || 'Le nom doit avoir moins de 10 caractères',
+                v => v && v.length <= 10 || 'Le nom doit avoir moins de 10 caractères',
             ],
             firstNameRules: [
-                v => v.length <= 10 || 'Le prénom doit avoir moins de 10 caractères',
+                v => v && v.length <= 10 || 'Le prénom doit avoir moins de 10 caractères',
             ],
             emailRules: [
                 v => /.+@.+/.test(v) || "L'email n'est pas valide",
@@ -140,7 +145,7 @@ export default {
                     'Content-Type': 'application/json'
                 }
             };
-            fetch(`http://localhost:3000/api/auth/:${ this.userProfile.userId }`, requestOptions)
+            fetch(`http://localhost:3000/api/auth/${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then(
                     localStorage.userId = "",
@@ -148,7 +153,7 @@ export default {
                     this.$router.push("/signup")
                 )
                 .catch(error => console.log(error))
-        },
+        }
     },
     mounted() {
         this.getProfile();

@@ -7,27 +7,27 @@
     >
     <v-card class="rounded-xl mb-8">
         <div class="post_container">
-            <v-img :src="post.picture_url" aria-label="Image" class="rounded-t-xl"></v-img>
+            <v-img :src="postData.picture_url" aria-label="Image" class="rounded-t-xl"></v-img>
 
-            <v-card-title class="post_title" v-model="titleValue" >{{ post.title }}</v-card-title>
+            <v-card-title class="post_title" v-model="titleValue" >{{ postData.title }}</v-card-title>
 
             <v-card-text>
                 <div>
-                    <p class="post_content_text">{{ post.description }}</p>
-                    <p class="post_info_name font-italic">posté par {{ post.last_name }} {{ post.first_name }}</p>
-                    <v-btn @click="isActive = !isActive" v-if="post.user_id == visitorId" type="submit" class="mr-4">Modifier</v-btn>
-                    <v-btn @click="deletePost" v-if="post.user_id == visitorId || admin == 1" type="submit" class="delete_button">Supprimer</v-btn> 
+                    <p class="post_content_text">{{ postData.description }}</p>
+                    <p class="post_info_name font-italic">posté par {{ postData.last_name }} {{ postData.first_name }}</p>
+                    <v-btn @click="isActive = !isActive" v-if="postData.user_id == visitorId" type="submit" class="mr-4">Modifier</v-btn>
+                    <v-btn @click="deletePost" v-if="postData.user_id == visitorId || admin == 1" type="submit" class="delete_button">Supprimer</v-btn> 
                 </div>
             </v-card-text>
 
-            <v-form :class="{ active: isActive }" v-model="valid" class="form_post">
+            <v-form ref="entryFormPost" :class="{ active: isActive }" v-model="valid" class="form_post">
                 <v-card-title class="update_title">Modifier la publication</v-card-title>
                 <v-col
                     cols="12"
                 >
                 <v-text-field
                     v-model="newPost.title"
-                    label="Titre"
+                    label="Titre*"
                     :rules="titleRules"
                     :counter="40"
                     id="new_title"
@@ -40,7 +40,7 @@
                 <v-file-input
                     v-on:change="uploadNewImagePost"
                     accept="image/jpg, image/jpeg, image/png, image/gif, image/webp"
-                    label="Télécharger une image"
+                    label="Télécharger une image*"
                     id="new_image_url"
                 ></v-file-input>
                 </v-col>
@@ -49,7 +49,7 @@
                 >
                 <v-text-field
                     v-model="newPost.description"
-                    label="Description"
+                    label="Description*"
                     :rules="descriptionRules"
                     :counter="250"
                     id="new_description"
@@ -93,11 +93,12 @@ export default {
     },
     props: {
         post: {
-            type: Object
+            type: Object,
         }
     },
     data: () => {
         return {
+            postData: Array,
             titleValue: "",
             valid: true,
             isActive: false,
@@ -118,11 +119,11 @@ export default {
             },
             titleRules: [
                 v => !!v || "Le titre est requis",
-                v => v.length <= 40 || 'Le titre doit avoir moins de 40 caractères',
+                v => v && v.length <= 40 || 'Le titre doit avoir moins de 40 caractères',
             ],
             descriptionRules: [
                 v => !!v || "La description est requise",
-                v => v.length <= 250 || 'La description doit avoir moins de 250 caractères',
+                v => v && v.length <= 250 || 'La description doit avoir moins de 250 caractères',
             ],
         }
     },
@@ -134,14 +135,14 @@ export default {
             this.error.title = "";
             this.error.img = "";
             this.error.description = "";
-            if(this.newPost.imageUrl && this.newPost.title && this.newPost.description)
+            if(this.$refs.entryFormPost.validate())
             {
                 const formData = new FormData();
                 formData.append('image', this.newPost.imageUrl);
                 formData.append('title', this.newPost.title);
                 formData.append('description', this.newPost.description);
                 formData.append('userId', this.newPost.userId);
-                formData.append('postId', this.post.id);
+                formData.append('postId', this.postData.id);
                 const requestOptions = {
                     method: 'PUT',
                     headers: {
@@ -149,11 +150,11 @@ export default {
                     },
                     body: formData
                 };
-                fetch(`http://localhost:3000/api/posts/:${ this.post.id }`, requestOptions)
+                fetch(`http://localhost:3000/api/posts/:${ this.postData.id }`, requestOptions)
                     .then(response => response.json())
-                    .then(data => {
+                    .then((data) => {
                         this.newPost = {};
-                        this.post = data.resSelectPost[0];
+                        this.postData = data.resSelectPost[0];
                     })
                     .catch(error => console.log(error))
             } else {
@@ -182,7 +183,7 @@ export default {
                     'Content-Type': 'application/json'
                 }
             };
-            fetch(`http://localhost:3000/api/posts/${ this.post.id }`, requestOptions)
+            fetch(`http://localhost:3000/api/posts/${ this.postData.id }`, requestOptions)
                 .then(response => response.json())
                 .then(() => {
                     this.$emit("deletePost");
@@ -190,23 +191,24 @@ export default {
                 .catch(error => console.log(error))
         },
         getCommentsList() {
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem("token"),
-                        'Content-Type': 'application/json'
-                    },
-                };
-                fetch(`http://localhost:3000/api/comments/${ this.post.id }`, requestOptions)
-                .then(response => response.json())
-                .then((data) => {
-                    this.commentList = data.resGetAllCommentsFunction;
-                })
-                .catch(error => console.log(error))   
+            const requestOptions = {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem("token"),
+                    'Content-Type': 'application/json'
+                },
+            };
+            fetch(`http://localhost:3000/api/comments/${ this.post.id }`, requestOptions)
+            .then(response => response.json())
+            .then((data) => {
+                this.commentList = data.resGetAllCommentsFunction;
+            })
+            .catch(error => console.log(error))   
         }
     },
     mounted() {
         this.getCommentsList();
+        this.postData = this.post;
     }
 }
 </script>
