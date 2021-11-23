@@ -91,8 +91,10 @@ export default {
             this.postInfo.imageUrl = file;
         },
         publishPost() {
+            //Vérification de la validité du formulaire et si présence d'une image
             if(this.$refs.entryFormNewPost.validate() && this.postInfo.imageUrl)
             {
+                //On ajoute l'image, le titre, la description ainsi que l'id du user à l'objet formData
                 const formData = new FormData();
                 formData.append('image', this.postInfo.imageUrl);
                 formData.append('title', this.postInfo.title);
@@ -101,14 +103,18 @@ export default {
                 const requestOptions = {
                     method: 'POST',
                     headers: {
+                        //On intègre le token récupéré du localStorage dans l'authentification
                         'Authorization': 'Bearer ' + localStorage.getItem("token")
                     },
                     body: formData
                 }
+                //Utilisation de fetch pour envoyer les données de la création d'une publication
                 fetch("http://localhost:3000/api/posts", requestOptions)
                     .then(response => response.json())
                     .then(() => {
+                        //On envoie les nouvelles données dans newPostInfo
                         this.postInfo = {};
+                        //On va renvoyer l'utilisateur vers la page de toutes les publications
                         this.$router.push("posts");
                     })
                 .catch(error => console.log(error))

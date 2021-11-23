@@ -110,6 +110,7 @@
         },
         methods: {
             signup(){
+                //Vérification de la validité du formulaire
                 if (this.$refs.entryForm.validate()) {
                     const user = {
                         "lastName": this.lastName,
@@ -120,15 +121,19 @@
                     const requestOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        //On va envoyer les données de l'utilisateur dans le corps de la requête
                         body: JSON.stringify(user)
                     }
+                    //Utilisation de fetch pour envoyer les données de la création de compte
                     fetch("http://localhost:3000/api/auth/signup", requestOptions)
                     .then(response => response.json())
                     .then((data) => {
                             if (data.userId && data.token) {
+                                //Stockage du userId, de l'admin et du token dans le localStorage
                                 localStorage.setItem("userId", data.userId);
                                 localStorage.setItem("admin", data.admin);
                                 localStorage.setItem("token", data.token);
+                                //On va renvoyer l'utilisateur vers la page de toutes les publications
                                 this.$router.push("/posts");
                             }
                         })
@@ -137,6 +142,7 @@
             }
         },
         mounted() {
+            //Modification du DOM en vidant le localStorage
             localStorage.clear();
         }
     };

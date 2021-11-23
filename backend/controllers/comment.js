@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const jwt = require('jsonwebtoken');
 
+/* Récupération / connection base de donnée */
 const config = require('../database/config.js');
 const connection = mysql.createConnection(config.databaseOptions);
 

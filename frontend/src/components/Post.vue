@@ -133,11 +133,14 @@ export default {
             this.newPost.imageUrl = file;
         },
         modifyPost() {
+            //On vide les datas erreurs
             this.error.title = "";
             this.error.img = "";
             this.error.description = "";
+            //Vérification de la validité du formulaire et si présence d'une image
             if(this.$refs.entryFormPost.validate() && this.newPost.imageUrl)
             {
+                //On ajoute l'image, le titre, la description ainsi que l'id du user à l'objet formData
                 const formData = new FormData();
                 formData.append('image', this.newPost.imageUrl);
                 formData.append('title', this.newPost.title);
@@ -146,22 +149,29 @@ export default {
                 const requestOptions = {
                     method: 'PUT',
                     headers: {
+                        //On intègre le token récupéré du localStorage dans l'authentification
                         'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     },
                     body: formData
                 };
+                //Utilisation de fetch pour mettre à jour les données d'une publication en fonction de son id
                 fetch(`http://localhost:3000/api/posts/${ this.postData.id }`, requestOptions)
                     .then(response => response.json())
                     .then((data) => {
+                        //On place les nouvelles données dans newPost
                         this.newPost = {};
+                        //On met à jour les anciennes données
                         this.postData = data.resSelectPost[0];
+                        //On ferme le formulaire
                         this.isActive = false
                     })
                     .catch(error => console.log(error))
             } else {
+                //On vide les datas erreurs
                 this.error.title = "";
                 this.error.img = "";
                 this.error.description = "";
+                //Affichage d'un message d'erreur si la vérification échoue
                 if(!this.newPost.title)
                 {
                     this.error.title = "Veuillez ajouter un titre ";
@@ -180,13 +190,17 @@ export default {
             const requestOptions = {
                 method: 'DELETE',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 }
             };
+            //Utilisation de fetch pour supprimer les données d'une publication en fonction de son id
             fetch(`http://localhost:3000/api/posts/${ this.postData.id }`, requestOptions)
                 .then(response => response.json())
                 .then(() => {
+                    //On informe le composant parent "Posts" d'effectuer le changement
+                    //(récupérer la liste de toutes les publications)
                     this.$emit("deletePost");
                 })
                 .catch(error => console.log(error))
@@ -195,10 +209,12 @@ export default {
             const requestOptions = {
                 method: 'GET',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 },
             };
+            //Utilisation de fetch pour supprimer les données d'une publication en fonction de son id
             fetch(`http://localhost:3000/api/comments/${ this.post.id }`, requestOptions)
             .then(response => response.json())
             .then((data) => {
@@ -208,7 +224,9 @@ export default {
         }
     },
     mounted() {
+        //Modification du DOM en récupérant la liste de tous les commentaires
         this.getCommentsList();
+        //Modification du DOM en changeant la valeur de la prop post évitant l'override
         this.postData = this.post;
     }
 }

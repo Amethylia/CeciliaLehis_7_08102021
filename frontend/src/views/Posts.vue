@@ -38,16 +38,19 @@ export default {
             const requestOptions = {
                 method: 'GET',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 }
             };
+            //Utilisation de fetch pour récupérer les données de de toutes les publications
             fetch("http://localhost:3000/api/posts", requestOptions)
             .then(response => response.json())
             .then((data) => {
                 if (data) {
                     this.postList = data.resGetAllPostsFunction;
                 }
+                //Envoie d'une erreur lorsqu'il n'y a pas de publications
                 if (!data.resGetAllPostsFunction.length > 0) {
                     this.errorPost = "Aucune publications : Voyez cliquer sur l'avion en papier pour être le premier à publier !";
                 }
@@ -56,6 +59,7 @@ export default {
         }
     },
     mounted() {
+        //Modification du DOM en récupérant la liste de toutes les publications
         this.getPostsList();
     }
 }

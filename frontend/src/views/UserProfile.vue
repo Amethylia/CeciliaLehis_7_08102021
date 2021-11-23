@@ -105,10 +105,12 @@ export default {
             const requestOptions = {
                 method: 'GET',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 }
             };
+            //Utilisation de fetch pour récupérer les données de l'utilisateur en fonction de son id
             fetch(`http://localhost:3000/api/auth/${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then(data => {
@@ -122,18 +124,23 @@ export default {
             const requestOptions = {
                 method: 'PUT',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(this.newProfile),
             };
+            //Utilisation de fetch pour mettre à jour les données de l'utilisateur en fonction de son id
             fetch(`http://localhost:3000/api/auth/${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then((data) => {
+                    //On place les nouvelles données dans newProfile
                     this.newProfile = {};
+                    //On met à jour les anciennes données
                     this.userProfile.lastName = data.nom;
                     this.userProfile.firstName = data.prenom;
                     this.userProfile.email = data.email;
+                    //On ferme le formulaire
                     this.isActive = false
                 })
                 .catch(error => console.log(error))
@@ -142,21 +149,26 @@ export default {
             const requestOptions = {
                 method: 'DELETE',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 }
             };
+            //Utilisation de fetch pour supprimer les données de l'utilisateur en fonction de son id
             fetch(`http://localhost:3000/api/auth/${ this.userProfile.userId }`, requestOptions)
                 .then(response => response.json())
                 .then(
+                    //On vide le userId et le token du localStorage
                     localStorage.userId = "",
                     localStorage.token = "",
+                    //On va renvoyer l'utilisateur vers la page d'inscription
                     this.$router.push("/signup")
                 )
                 .catch(error => console.log(error))
         }
     },
     mounted() {
+        //Modification du DOM en récupérant le profil
         this.getProfile();
     }
 }

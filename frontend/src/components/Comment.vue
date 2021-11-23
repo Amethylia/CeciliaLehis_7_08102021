@@ -28,13 +28,17 @@ export default {
             const requestOptions = {
                 method: 'DELETE',
                 headers: {
+                    //On intègre le token récupéré du localStorage dans l'authentification
                     'Authorization': 'Bearer ' + localStorage.getItem("token"),
                     'Content-Type': 'application/json'
                 }
             };
+            //Utilisation de fetch pour supprimer les données d'un commentaire en fonction de son id et de celui de la publication
             fetch(`http://localhost:3000/api/comments/${ this.post.id }/${ this.comment.id }`, requestOptions)
                 .then(response => response.json())
                 .then(() => {
+                    //On informe le composant parent "Post" d'effectuer le changement
+                    //(récupérer la liste des commentaires en fonction de l'id de la publication) 
                     this.$emit("deleteComment")
                 })
                 .catch(error => console.log(error))

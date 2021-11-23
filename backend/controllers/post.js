@@ -2,6 +2,7 @@ const mysql = require('mysql2');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 
+/* Récupération / connection base de donnée */
 const config = require('../database/config.js');
 const connection = mysql.createConnection(config.databaseOptions);
 
@@ -34,13 +35,13 @@ exports.createPost = (req, resExp, next) => {
     const insertValues = [userId, title, imageUrl, description];
     if (imageUrl) {
         createPost = mysql.format(createPostSql, insertValues);
-    connection.query(createPost, function (err, resCreatePostFunction){
-        if (!resCreatePostFunction){
-            return resExp.status(400).json({ error: 'Création du post refusée !' });
-        } else {
-            return resExp.status(200).json({ message: 'Création du post réussie !' });
-        }
-    })
+        connection.query(createPost, function (err, resCreatePostFunction){
+            if (!resCreatePostFunction){
+                return resExp.status(400).json({ error: 'Création du post refusée !' });
+            } else {
+                return resExp.status(200).json({ message: 'Création du post réussie !' });
+            }
+        })
     }
 };
 
@@ -58,7 +59,8 @@ exports.modifyPost = (req, resExp, next) => {
     {
         imagePost = mysql.format(selectURL, insertValue);
         connection.query(imagePost, function (err, resSelectPost) {
-            if(resSelectPost) { // Suppression de l'image réussi
+            if(resSelectPost) {
+                // Suppression de l'image dans le dossier images
                 const filename = resSelectPost[0]["picture_url"].split("/images/")[1];
                 fs.unlink(`images/${filename}`, () => {});
             } else {
@@ -93,7 +95,7 @@ exports.modifyPost = (req, resExp, next) => {
     });
 };
 
-/* Suppression d'un post */
+/* Suppression d'un post et des commentaires associés */
 exports.deletePost = (req, resExp, next) => {
     const postId = req.params['id'];
 

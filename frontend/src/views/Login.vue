@@ -72,6 +72,7 @@
         },
         methods: {
             login(){
+                //Vérification de la validité du formulaire
                 if (this.$refs.entryFormLogin.validate()) {
                     const user = {
                         "email": this.email,
@@ -80,8 +81,10 @@
                     const requestOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        //On va envoyer les données du formulaire dans le corps de la requête
                         body: JSON.stringify(user)
                     }
+                    //Utilisation de fetch pour envoyer les données de la connexion
                     fetch("http://localhost:3000/api/auth/login", requestOptions)
                     .then((response) => {
                         if (response.ok) {
@@ -93,19 +96,23 @@
                     })
                     .then((data) => {
                         if (data.userId && data.token) {
+                            //Stockage du userId, de l'admin et du token dans le localStorage
                             localStorage.setItem("userId", data.userId)
                             localStorage.setItem("admin", data.admin)
                             localStorage.setItem("token", data.token)
+                            //On va renvoyer l'utilisateur vers la page de toutes les publications
                             this.$router.push("/posts");
                         }
                     })
                     .catch((error) => {
+                        //Affichage de l'erreur venant du backend
                         this.errorLogin = error.message;
                     })
                 }
             }
         },
         mounted() {
+            //Modification du DOM en vidant le localStorage
             localStorage.clear();
         }
     };

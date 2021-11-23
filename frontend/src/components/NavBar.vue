@@ -44,7 +44,9 @@ export default {
     },
     methods: {
         logout() {
+            //On vide le localStorage
             localStorage.clear();
+            //On va renvoyer l'utilisateur vers la page d'inscription
             this.$router.push("/");
         }
     }
